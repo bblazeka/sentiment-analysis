@@ -1,5 +1,9 @@
 import nltk
+import numpy
+import string
+from os.path import isfile,abspath,isdir,join
 from nltk.corpus import sentiwordnet as swn
+from collections import defaultdict
 
 def sentiWordNetScore(doc):
     sentences = nltk.sent_tokenize(doc)
@@ -38,4 +42,18 @@ def sentiWordNetScore(doc):
 
     for score_sent in score_list:
         sentence_sentiment.append(sum([word_score for word_score in score_sent])/len(score_sent))
-    return sentence_sentiment
+    return numpy.sum(sentence_sentiment)
+
+def hashtagSentScore(dictionary,doc):
+    counts = defaultdict(int)
+    words = [x.lower() for x in doc.split()]
+    for word in words:
+        counts[word]+=1
+    return dictionary.hashtagsent_score(counts)
+
+def sent140LexScore(dictionary,doc):
+    counts = defaultdict(int)
+    words = [x.lower() for x in doc.split()]
+    for word in words:
+        counts[word]+=1
+    return dictionary.sent140lex_score(counts)
