@@ -1,6 +1,7 @@
 import nltk
 import numpy
 import string
+import sqlite3
 from os.path import isfile,abspath,isdir,join
 from nltk.corpus import sentiwordnet as swn
 from collections import defaultdict
@@ -44,16 +45,28 @@ def sentiWordNetScore(doc):
         sentence_sentiment.append(sum([word_score for word_score in score_sent])/len(score_sent))
     return numpy.sum(sentence_sentiment)
 
-def hashtagSentScore(dictionary,doc):
+def dict_convert(doc):
     counts = defaultdict(int)
     words = [x.lower() for x in doc.split()]
     for word in words:
         counts[word]+=1
-    return dictionary.hashtagsent_score(counts)
+    return counts
 
-def sent140LexScore(dictionary,doc):
-    counts = defaultdict(int)
-    words = [x.lower() for x in doc.split()]
-    for word in words:
-        counts[word]+=1
-    return dictionary.sent140lex_score(counts)
+def output(name,verdict,value):
+    if(verdict>0):
+        print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"positive",value))
+    elif(verdict<0):
+        print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"negative",value))
+    else:
+        print("{0:<15s} {1:<10s}".format(name,"unknown"))
+
+def dbhandler():
+    posts = []
+    con = sqlite3.connect('./data/input/reddit.db')
+    cursor = con.cursor()
+    cursor.execute("SELECT * FROM post")
+    for post in cursor.fetchmany(100):
+        text = post[8]
+        if text != "[deleted]" and text != "[removed]" and text != "":
+            posts.append(text)
+    return posts

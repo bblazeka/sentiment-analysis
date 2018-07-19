@@ -1,18 +1,22 @@
 from labMTsimple.speedy import LabMT
 from labMTsimple.storyLab import emotionFileReader,emotion,stopper,emotionV
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from sentiscores import sentiWordNetScore, sent140LexScore, hashtagSentScore
-from sentidict import SentiDict
+from sentiutil import sentiWordNetScore, dict_convert, output, dbhandler
+from sentidict import SentiDict, HashtagSent, Sent140Lex
 from math import isnan
 
-def check(value,threshold,unknown=float('nan')):
-    if value > threshold:
-        print("positive", end=' ')
-    elif value == unknown:
-        print("unknown", end=' ')
+def check(name,value,threshold,unknown=float('nan')):
+    if(value > 1.0 and threshold != 0.0):
+        output_value = (value-threshold)/threshold
     else:
-        print("negative", end=' ')
-    print(value, ' ')
+        output_value = value
+    if value > threshold:
+        verdict = 1
+    elif value == unknown:
+        verdict = 0
+    else:
+        verdict = -1
+    output(name,verdict,output_value)
 
 def main():
 
@@ -20,37 +24,36 @@ def main():
     labMT,labMTvector,labMTwordList = emotionFileReader(stopval=0.0,lang=lang,returnVector=True)
 
     analyzer = SentimentIntensityAnalyzer()
-    dictionary = SentiDict()
+    hashtagSent = HashtagSent()
+    sent140Lex = Sent140Lex()
 
-    f = open('data/input/test.in')
-    sentences = f.readlines()
-    f.close()
+    try:
+        corpus = dbhandler()
+    except:
+        f = open('data/input/test.in')
+        corpus = f.readlines()
+        f.close()
 
-    for sentence in sentences:
-        print(sentence)
+    for entry in corpus:
+        entry = entry.rstrip()
+        print(entry)
         #VADER
-        print("VADER", end=' ')
-        polarity = analyzer.polarity_scores(sentence)
+        polarity = analyzer.polarity_scores(entry)
         # alternative is to compare if polarity['pos'] > polarity['neg']
-        check(polarity['compound'],0.0,0.0)
+        check("VADER",polarity['compound'],0.0,0.0)
         #LabMT
-        print("LabMT", end=' ')
-        _,movieFvec = emotion(sentence,labMT,shift=True,happsList=labMTvector)
+        _,movieFvec = emotion(entry,labMT,shift=True,happsList=labMTvector)
         movieStoppedVec = stopper(movieFvec,labMTvector,labMTwordList,stopVal=1.0)
         emoV = emotionV(movieStoppedVec,labMTvector)
-        check(emoV,5.0,-1.0)
+        check("LabMT",emoV,5.0,-1.0)
         #SentiWordNet
-        print("SWN", end=' ')
-        swn_score = sentiWordNetScore(sentence)
-        check(swn_score,0.0,0.0)
+        #swn_score = sentiWordNetScore(entry)
+        #check("SentiWordNet",swn_score,0.0,0.0)
         #HashtagSent
-        print("#Sent", end=' ')
-        hs_score = hashtagSentScore(dictionary,sentence)
-        check(hs_score,0.0)
+        hashtagSent.score(dict_convert(entry))
         #Sent140Lex
-        print("S140", end=' ')
-        s140_score = sent140LexScore(dictionary,sentence)
-        check(s140_score,0.0)
+        sent140Lex.score(dict_convert(entry))
+
         print("")
 
 if __name__ == '__main__':
