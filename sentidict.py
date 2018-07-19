@@ -1,12 +1,14 @@
 # inspired by:
 # https://github.com/andyreagan/labMT-simple/blob/master/labMTsimple/speedy.py
 
+from labMTsimple.storyLab import emotionFileReader,emotion,stopper,emotionV
 import nltk
 from nltk.corpus import sentiwordnet as swn
 import numpy
 import codecs
 from os.path import isfile,abspath,isdir,join
 from sentiutil import output
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 import sys
 # handle both pythons
@@ -20,7 +22,13 @@ else:
         """Python 2/3 agnostic unicode function"""
         return x
 
-class SentiDict():
+class BaseDict():
+
+    threshold = 0.0
+    name = ""
+    unknown = float('nan')
+    scores = []
+    verdicts = []
 
     def openWithPath(self,filename,mode):
         """Helper function for searching for files."""
@@ -50,11 +58,37 @@ class SentiDict():
                         totalscore += count*lex[word][idx]
         if totalcount > 0:
             return totalscore / totalcount
+
+    def evalPercent(self):
+        """Calculate percentage of entries that were recognized"""
+        unknown = 0
+        for i in self.verdicts:
+            if i == 0:
+                unknown += 1
+        return 1-unknown/len(self.verdicts)*1.0
+
+    def judge(self,value):
+        verdict = 0
+        try:
+            if(value > self.threshold):
+                verdict = 1
+            elif(value == self.unknown):
+                verdict =  0
+            else:
+                verdict = -1
+        except:
+            verdict = 0
+        self.verdicts.append(verdict)
+        output(self.name,verdict,value)
+        return verdict
     
     def __init__(self):
         print("analysis starting...\n")
 
-class SentiWordNet(SentiDict):
+class SentiWordNet(BaseDict):
+    unknown = 0.0
+    name = "SentiWordNet"
+
 
     def score(self,entry):
         sentences = nltk.sent_tokenize(entry)
@@ -96,9 +130,11 @@ class SentiWordNet(SentiDict):
                 sentence_sentiment.append(sum([word_score for word_score in score_sent])/len(score_sent))
             except:
                 sentence_sentiment.append(0)
-        return numpy.sum(sentence_sentiment)
+        score = numpy.sum(sentence_sentiment)
+        self.scores.append(score)
+        return score
 
-class HashtagSent(SentiDict):
+class HashtagSent(BaseDict):
     # Citation required!!
     data = dict()
     name = "HashtagSent"
@@ -120,13 +156,15 @@ class HashtagSent(SentiDict):
 
     def score(self,entry):
         score = self.calculate_score(entry,self.data)
-        output(self.name,score,score)
+        self.scores.append(score)
         return score
 
     def __init__(self):
         self.load()
+        self.scores = []
+        self.verdicts = []
 
-class Sent140Lex(SentiDict):
+class Sent140Lex(BaseDict):
     # Citation required!!
     data = dict()
     name = "Sent140Lex"
@@ -149,8 +187,43 @@ class Sent140Lex(SentiDict):
 
     def score(self,entry):
         score = self.calculate_score(entry,self.data)
-        output(self.name,score,score)
+        self.scores.append(score)
         return score
 
     def __init__(self):
         self.load()
+        self.scores = []
+        self.verdicts = []
+
+class LabMT(BaseDict):
+    name = "LabMT"
+    threshold = 5.0
+    unknown = -1.0
+    def score(self,entry):
+        lang = 'english'
+        labMT,labMTvector,labMTwordList = emotionFileReader(stopval=0.0,lang=lang,returnVector=True)
+        _,movieFvec = emotion(entry,labMT,shift=True,happsList=labMTvector)
+        movieStoppedVec = stopper(movieFvec,labMTvector,labMTwordList,stopVal=1.0)
+        emoV = emotionV(movieStoppedVec,labMTvector)
+        self.scores.append(emoV)
+        return emoV
+
+    def __init__(self):
+        self.scores = []
+        self.verdicts = []
+
+class Vader(BaseDict):
+    name="VADER"
+    threshold = 0.0
+    analyzer = None
+
+    def score(self,entry):
+        # alternative is to compare if polarity['pos'] > polarity['neg']
+        score = self.analyzer.polarity_scores(entry)['compound']
+        self.scores.append(score)
+        return score
+
+    def __init__(self):
+        self.analyzer = SentimentIntensityAnalyzer()
+        self.scores = []
+        self.verdicts = []
