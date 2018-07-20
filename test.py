@@ -1,5 +1,5 @@
-from sentiutil import dict_convert, output, dbhandler, plotting, classify_score, evalPercent
-from sentidict import LabMT,HashtagSent, Sent140Lex, SentiWordNet, Vader
+from sentiutil import dict_convert, output, dbhandler, plotting, classify_score, evalPercent, plot_two
+from sentidict import LabMT, HashtagSent, Sent140Lex, SentiWordNet, Vader
 from math import isnan
 
 def main():
@@ -18,7 +18,7 @@ def main():
     else:
         f = open('data/input/test.in')
         corpus = f.readlines()
-        test_correct = [1,-1,1,-1,1,-1,1,1,-1,1,-1,1,-1,-1,1,-1,1,-1]
+        test_correct = [1,-1,1,-1,1,-1,1,1,-1,1,-1,1,-1,-1,1,-1,1,-1,-1,1]
         f.close()
 
     for entry in corpus:
@@ -53,6 +53,7 @@ def main():
         print("S140")
         print(classify_score(test_correct,s140.verdicts))
 
+    print("Percentage of entries evaluated:")
     print(vader.evalPercent())
     print(labmt.evalPercent())
     print(hs.evalPercent())
@@ -60,6 +61,10 @@ def main():
 
     #plotting("Values",indexes,vader.scores,labmt.scores,swn.scores,hs.scores,s140.scores)
     plotting("Verdicts",indexes,vader.verdicts,labmt.verdicts,swn.verdicts,hs.verdicts,s140.verdicts)
+    if(test==True):
+        plot_two("Vader score",indexes,vader.verdicts,test_correct,corpus,"vader","correct")
+        plot_two("S140 score",indexes,s140.verdicts,test_correct,corpus,"s140","correct")
+        plot_two("#sent score",indexes,hs.verdicts,test_correct,corpus,"#sent","correct")
 
 if __name__ == '__main__':
     main()

@@ -36,6 +36,15 @@ def dbhandler(num):
             posts.append(text)
     return posts
 
+def plot_two(title,indexes,first_scores,second_scores,entries,name_1="first",name_2="second"):
+    plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
+    plt.subplots_adjust(top=0.8)
+    plt.plot(indexes,first_scores, label=name_1)
+    plt.plot(indexes,second_scores, label=name_2)
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
+    plt.show()
+
 def plotting(title,indexes,vader_scores,labmt_scores,swn_scores,hs_scores,s140_scores):
     plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
     plt.subplots_adjust(top=0.8)
