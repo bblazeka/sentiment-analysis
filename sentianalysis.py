@@ -1,15 +1,16 @@
 """
     Interface for using the sentiment analysis
 """
-from enum import Enum
 import sqlite3
 from sentiutil import output, plotting, classify_score, evalPercent, plot_two
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader
 
 class SentimentAnalyzer():
-
+    """
+        Preferred dictionary set to Vader by default
+    """
     corpus = []
-    dicts = []
+    dicts = [Vader()]
 
     def db_load(self,db_path,table,column=0,limit=0):
         """loads the data from database, with specified table"""
@@ -26,34 +27,30 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":    
                 self.corpus.append(text)
     
-    def set_dict(self,dict):
+    def set_dict(self,vader=True,labmt=False,s140=False,hsent=False):
         """sets the used dictionary"""
-        if dict == Dictionaries.VADER:
-            self.dictionary = Vader()
-        elif dict == Dictionaries.LabMT:
-            self.dictionary = LabMT()
-        elif dict == Dictionaries.Sent140:
-            self.dictionary = Sent140Lex()
-        elif dict == Dictionaries.HashtagSent:
-            self.dictionary = HashtagSent()
+        self.dicts = []
+        if vader:
+            self.dicts.append(Vader())
+        if labmt:
+            self.dicts.append(LabMT())
+        if s140:
+            self.dicts.append(Sent140Lex())
+        if hsent:
+            self.dicts.append(HashtagSent())
 
     def score_corpus(self):
         """calculates the scores of the corpus"""
         scores = []
         for line in self.corpus:
+            print("\n\"\"\"")
             print(line)
-            score = self.dictionary.score(line)
-            scores.append(score)
-            print(score)
-            print(self.dictionary.judge(score))
+            print("\"\"\"\n")
+            for dict in self.dicts:
+                score = dict.score(line)
+                dict.judge(score)
         return scores
 
     def graph(self):
         """writing graphs"""
         pass
-
-class Dictionaries(Enum):
-    VADER = 1
-    LabMT = 2
-    HashtagSent = 3
-    Sent140 = 4

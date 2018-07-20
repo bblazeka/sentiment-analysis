@@ -140,3 +140,7 @@ $RECYCLE.BIN/
 
 # Project specific folder containing data
 data/
+
+# Project specific output files
+*.in
+*.out

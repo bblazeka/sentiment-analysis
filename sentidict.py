@@ -3,9 +3,7 @@
 
 import codecs
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output
-from sentiutil import dict_convert, output, plotting, classify_score, evalPercent, plot_two
-
+from sentiutil import dict_convert, output, plotting
 import sys
 # handle both pythons
 if sys.version < '3':
@@ -25,6 +23,7 @@ class BaseDict():
     unknown = float('nan')
     scores = []
     verdicts = []
+    my_dict = dict()
 
     def openWithPath(self,filename,mode):
         """Helper function for searching for files."""
@@ -40,20 +39,6 @@ class BaseDict():
             return f
         except:
             raise('could not open the needed file')
-
-    def load(self,path):
-        f = self.openWithPath(join(path),"r")
-        i = 0
-        unigrams = dict()
-        for line in f:
-            word,score,_,_ = line.rstrip().split("\t")
-            if word not in unigrams:
-                unigrams[word] = (i,float(score))
-                i+=1
-            else:
-                print("complaining")
-        f.close()
-        self.data = unigrams
 
     def calculate_score(self,input,lex):
         idx = 1
@@ -91,35 +76,28 @@ class BaseDict():
             verdict = 0
         self.verdicts.append(verdict)
         output(self.name,verdict,value)
-        return verdict
-    
-    def __init__(self):
-        print("analysis starting...\n")
 
-class Vader(BaseDict):
-    name="VADER"
-    threshold = 0.0
-
-    def load(self):
-        self.openWithPath("data/vader/unigrams-lexicon.txt","r")
-
-    def score(self,entry):
-        # should calculate the score
-        pass
-
-    def __init__(self):
-        self.load()
-        self.scores = []
-        self.verdicts = []
 
 class HashtagSent(BaseDict):
     # Citation required!!
-    data = dict()
     name = "HashtagSent"
-    threshold = 0.0
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        unigrams = dict()
+        for line in f:
+            word,score,_,_ = line.rstrip().split("\t")
+            if word not in unigrams:
+                unigrams[word] = (i,float(score))
+                i+=1
+            else:
+                print("complaining")
+        f.close()
+        self.my_dict = unigrams
 
     def score(self,entry):
-        score = self.calculate_score(entry,self.data)
+        score = self.calculate_score(entry,self.my_dict)
         self.scores.append(score)
         return score
 
@@ -130,12 +108,24 @@ class HashtagSent(BaseDict):
 
 class Sent140Lex(BaseDict):
     # Citation required!!
-    data = dict()
     name = "Sent140Lex"
-    threshold = 0.0
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        unigrams = dict()
+        for line in f:
+            word,score,_,_ = line.rstrip().split("\t")
+            if word not in unigrams:
+                unigrams[word] = (i,float(score))
+                i+=1
+            else:
+                print("complaining")
+        f.close()
+        self.my_dict = unigrams
 
     def score(self,entry):
-        score = self.calculate_score(entry,self.data)
+        score = self.calculate_score(entry,self.my_dict)
         self.scores.append(score)
         return score
 
@@ -144,5 +134,59 @@ class Sent140Lex(BaseDict):
         self.scores = []
         self.verdicts = []
 
+class Vader(BaseDict):
+    name="VADER"
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        unigrams = dict()
+        for line in f:
+            line_split = line.rstrip().split("\t")
+            word = line_split[0]
+            score = float(line_split[1])
+            std = float(line_split[2])
+            unigrams[word] = (i,score,std)
+            i+=1
+        f.close()
+        self.my_dict = unigrams
+
+    def score(self,entry):
+        score = self.calculate_score(entry,self.my_dict)
+        self.scores.append(score)
+        return score
+
+    def __init__(self):
+        self.load("data/vader/unigrams-lexicon.txt")
+        self.scores = []
+        self.verdicts = []
+
 class LabMT(BaseDict):
-    pass
+    name="LabMT"
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        unigrams = dict()
+        for line in f:
+            l = line.rstrip().split("\t")
+            # this is for the english set
+            # word,overallrank,happs,stddev,rank1,rank2,rank3,rank4 = l
+            # for other langs, not the same
+            # we'll at least assume that the first four ar the same
+            word,_,happs,stddev = l[:4]
+            # twitter_rank	gbooks_rank	nyt_rank	lyrics_rank
+            other_ranks = l[4:]
+            unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
+            i+=1
+        f.close()
+
+    def score(self,entry):
+        score = self.calculate_score(entry,self.my_dict)
+        self.scores.append(score)
+        return score
+
+    def __init__(self):
+        self.load("data/labmt/labmt2.txt")
+        self.scores = []
+        self.verdicts = []
