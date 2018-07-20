@@ -24,18 +24,6 @@ def output(name,verdict,value):
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
 
-def dbhandler(num):
-    """Used to get posts from the database"""
-    posts = []
-    con = sqlite3.connect('./data/input/reddit.db')
-    cursor = con.cursor()
-    cursor.execute("SELECT * FROM post")
-    for post in cursor.fetchmany(num):
-        text = post[8]
-        if text != "[deleted]" and text != "[removed]" and text != "":
-            posts.append(text)
-    return posts
-
 def plot_two(title,indexes,first_scores,second_scores,entries,name_1="first",name_2="second"):
     plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
     plt.subplots_adjust(top=0.8)
