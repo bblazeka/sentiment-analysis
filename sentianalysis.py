@@ -6,15 +6,13 @@ from sentiutil import output, plotting, classify_score, evalPercent, plot_two
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader
 
 class SentimentAnalyzer():
-    """
-        Preferred dictionary set to Vader by default
-    """
+
     corpus = []
-    dicts = [Vader()]
+    dicts = []
 
     def db_load(self,db_path,table,column=0,limit=0):
         """loads the data from database, with specified table"""
-        con = sqlite3.connect('./data/corpus/reddit.db')
+        con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
@@ -27,17 +25,20 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":    
                 self.corpus.append(text)
     
-    def set_dict(self,vader=True,labmt=False,s140=False,hsent=False):
-        """sets the used dictionary"""
+    def set_dict(self,vader=None,labmt=None,s140=None,hsent=None):
+        """
+            sets the used dictionaries by supplying their directory path or True if should
+            be loaded from the default path data/{algorithm}/{filename}.txt
+        """
         self.dicts = []
-        if vader:
-            self.dicts.append(Vader())
-        if labmt:
-            self.dicts.append(LabMT())
-        if s140:
-            self.dicts.append(Sent140Lex())
-        if hsent:
-            self.dicts.append(HashtagSent())
+        if vader != None:
+            self.dicts.append(Vader(vader))
+        if labmt != None:
+            self.dicts.append(LabMT(labmt))
+        if s140 != None:
+            self.dicts.append(Sent140Lex(s140))
+        if hsent != None:
+            self.dicts.append(HashtagSent(hsent))
 
     def score_corpus(self):
         """calculates the scores of the corpus"""
@@ -52,5 +53,8 @@ class SentimentAnalyzer():
         return scores
 
     def graph(self):
-        """writing graphs"""
+        """drawing graphs"""
         pass
+
+    def __init__(self):
+        self.dicts = []

@@ -4,8 +4,8 @@ def main():
 
     sentianalyzer = SentimentAnalyzer()
 
-    sentianalyzer.db_load('./data/input/reddit.db',"post",8,500)
-    sentianalyzer.set_dict(True,s140=True)
+    sentianalyzer.db_load('./data/corpus/reddit.db',"post",8,500)
+    sentianalyzer.set_dict(True,s140=True,labmt=True)
     sentianalyzer.score_corpus()
 
 if __name__ == '__main__':

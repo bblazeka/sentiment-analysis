@@ -25,6 +25,9 @@ class BaseDict():
     verdicts = []
     my_dict = dict()
 
+    def setPath(self,path):
+        self.path=path
+
     def openWithPath(self,filename,mode):
         """Helper function for searching for files."""
         try:
@@ -81,6 +84,7 @@ class BaseDict():
 class HashtagSent(BaseDict):
     # Citation required!!
     name = "HashtagSent"
+    path = "data/hashtagsent/unigrams-pmilexicon.txt"
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -101,14 +105,18 @@ class HashtagSent(BaseDict):
         self.scores.append(score)
         return score
 
-    def __init__(self):
-        self.load("data/hashtagsent/unigrams-pmilexicon.txt")
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
         self.scores = []
         self.verdicts = []
 
 class Sent140Lex(BaseDict):
     # Citation required!!
     name = "Sent140Lex"
+    path = "data/sent140lex/unigrams-pmilexicon.txt"
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -129,13 +137,17 @@ class Sent140Lex(BaseDict):
         self.scores.append(score)
         return score
 
-    def __init__(self):
-        self.load("data/sent140lex/unigrams-pmilexicon.txt")
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
         self.scores = []
         self.verdicts = []
 
 class Vader(BaseDict):
-    name="VADER"
+    name = "VADER"
+    path = "data/vader/unigrams-lexicon.txt"
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -156,13 +168,17 @@ class Vader(BaseDict):
         self.scores.append(score)
         return score
 
-    def __init__(self):
-        self.load("data/vader/unigrams-lexicon.txt")
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
         self.scores = []
         self.verdicts = []
 
 class LabMT(BaseDict):
-    name="LabMT"
+    name = "LabMT"
+    path = "data/labmt/labmt2.txt"
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -186,7 +202,10 @@ class LabMT(BaseDict):
         self.scores.append(score)
         return score
 
-    def __init__(self):
-        self.load("data/labmt/labmt2.txt")
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
         self.scores = []
         self.verdicts = []
