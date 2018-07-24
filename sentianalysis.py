@@ -10,8 +10,14 @@ class SentimentAnalyzer():
     corpus = []
     dicts = []
 
+    def file_load(self,file_path):
+        """loads data from a file"""
+        f = open(file_path)
+        self.corpus = f.readlines()
+        f.close()
+
     def db_load(self,db_path,table,column=0,limit=0):
-        """loads the data from database, with specified table"""
+        """loads the data from sqlite3 database, with specified table"""
         con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []

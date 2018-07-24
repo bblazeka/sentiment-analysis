@@ -4,6 +4,7 @@
 import codecs
 from os.path import isfile,abspath,isdir,join
 from sentiutil import dict_convert, output, plotting
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import sys
 # handle both pythons
 if sys.version < '3':
@@ -53,8 +54,8 @@ class BaseDict():
         for word,count in word_dict.items():
             if word in lex:
                 if abs(lex[word][idx]-center) >= stopVal:
-                        totalcount += count
-                        totalscore += count*lex[word][idx]
+                    totalcount += count
+                    totalscore += count*lex[word][idx]
         if totalcount > 0:
             return totalscore / totalcount
 
@@ -147,34 +148,18 @@ class Sent140Lex(BaseDict):
 
 class Vader(BaseDict):
     name = "VADER"
-    path = "data/vader/unigrams-lexicon.txt"
-
-    def load(self,path):
-        f = self.openWithPath(join(path),"r")
-        i = 0
-        unigrams = dict()
-        for line in f:
-            line_split = line.rstrip().split("\t")
-            word = line_split[0]
-            score = float(line_split[1])
-            std = float(line_split[2])
-            unigrams[word] = (i,score,std)
-            i+=1
-        f.close()
-        self.my_dict = unigrams
 
     def score(self,entry):
-        score = self.calculate_score(entry,self.my_dict)
-        self.scores.append(score)
+        score = self.analyzer.polarity_scores(entry)['compound']
         return score
 
-    def __init__(self,path=None):
-        try:
-            self.load(path)
-        except TypeError:
-            self.load(self.path)
-        self.scores = []
-        self.verdicts = []
+    def __init__(self,lex=None,emoji=None):
+        base_return = '../../../../../Documents/Github/sentiment-analysis/'
+        if lex == None or lex == True:
+            lex = base_return+'data/vader/unigrams-lexicon.txt'
+        if emoji == None:
+            emoji = base_return+'data/vader/utf8-emoji.txt'
+        self.analyzer = SentimentIntensityAnalyzer(lexicon_file=lex, emoji_lexicon=emoji)
 
 class LabMT(BaseDict):
     name = "LabMT"
@@ -186,16 +171,14 @@ class LabMT(BaseDict):
         unigrams = dict()
         for line in f:
             l = line.rstrip().split("\t")
-            # this is for the english set
-            # word,overallrank,happs,stddev,rank1,rank2,rank3,rank4 = l
-            # for other langs, not the same
-            # we'll at least assume that the first four ar the same
+            # this is for the english set, for other langs, not the same
             word,_,happs,stddev = l[:4]
-            # twitter_rank	gbooks_rank	nyt_rank	lyrics_rank
+            # we'll at least assume that the first four ar the same
             other_ranks = l[4:]
             unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
             i+=1
         f.close()
+        self.my_dict = unigrams
 
     def score(self,entry):
         score = self.calculate_score(entry,self.my_dict)

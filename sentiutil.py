@@ -8,8 +8,7 @@ from matplotlib import pyplot as plt
 def dict_convert(doc):
     """convert a sentence to a dictionary entry"""
     counts = defaultdict(int)
-    words = [x.lower() for x in doc.split()]
-    for word in words:
+    for word in [x.lower() for x in doc.split()]:
         counts[word]+=1
     return counts
 

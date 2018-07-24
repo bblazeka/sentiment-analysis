@@ -1,5 +1,4 @@
 from sentidict import BaseDict
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import nltk
 from nltk.corpus import sentiwordnet as swn
 from labMTsimple.storyLab import emotionFileReader,emotion,stopper,emotionV
@@ -66,25 +65,4 @@ class LabMT(BaseDict):
         _,movieFvec = emotion(entry,labMT,shift=True,happsList=labMTvector)
         movieStoppedVec = stopper(movieFvec,labMTvector,labMTwordList,stopVal=1.0)
         emoV = emotionV(movieStoppedVec,labMTvector)
-        self.scores.append(emoV)
         return emoV
-
-    def __init__(self):
-        self.scores = []
-        self.verdicts = []
-
-class Vader(BaseDict):
-    name="VADER"
-    threshold = 0.0
-    analyzer = None
-
-    def score(self,entry):
-        # alternative is to compare if polarity['pos'] > polarity['neg']
-        score = self.analyzer.polarity_scores(entry)['compound']
-        self.scores.append(score)
-        return score
-
-    def __init__(self):
-        self.analyzer = SentimentIntensityAnalyzer()
-        self.scores = []
-        self.verdicts = []
