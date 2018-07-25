@@ -49,13 +49,14 @@ class SentimentAnalyzer():
     def score_corpus(self):
         """calculates the scores of the corpus"""
         scores = []
-        for line in self.corpus:
+        for entry in [x.rstrip() for x in self.corpus]:
             print("\n\"\"\"")
-            print(line)
+            print(entry)
             print("\"\"\"\n")
             for dict in self.dicts:
-                score = dict.score(line)
-                dict.judge(score)
+                score = dict.score(entry)
+                print(score)
+                dict.judge(score['compound'])
         return scores
 
     def graph(self):

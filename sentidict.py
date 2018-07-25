@@ -3,6 +3,7 @@
 
 import codecs
 from os.path import isfile,abspath,isdir,join
+from math import fabs
 from sentiutil import dict_convert, output, plotting
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import sys
@@ -20,6 +21,9 @@ else:
 class BaseDict():
 
     threshold = 0.0
+    max = 0.0
+    min = 0.0
+    mean = 0.0
     name = ""
     unknown = float('nan')
     scores = []
@@ -44,20 +48,45 @@ class BaseDict():
         except:
             raise('could not open the needed file')
 
-    def calculate_score(self,input,lex):
+    def calculate_score(self,input,lex,stopVal):
         idx = 1
-        center = 0.0
-        stopVal = 0.0
         totalcount = 0
         totalscore = 0.0
         word_dict = dict_convert(input)
+
+        positive = 0.0
+        negative = 0.0
+        neutral = 0
         for word,count in word_dict.items():
             if word in lex:
-                if abs(lex[word][idx]-center) >= stopVal:
+                happ = lex[word][idx]
+                if abs(happ-self.mean) >= stopVal:
+                    if happ > self.mean:
+                        positive += (happ + 1)
+                    elif happ < self.mean:
+                        negative += (happ - 1)
+                    else:
+                        neutral += 1
                     totalcount += count
                     totalscore += count*lex[word][idx]
-        if totalcount > 0:
-            return totalscore / totalcount
+                else:
+                    neutral += 1
+        try:
+            comp = totalscore / totalcount
+        except:
+            comp = 0.0 
+        negative = fabs(negative)
+        compound = self.normalize(comp,self.max,self.min,self.mean)
+        total = neutral + negative + positive
+        if total == 0:
+            total = 1.0
+        neg = negative / total * 1.0
+        neu = neutral / total * 1.0
+        pos = positive / total * 1.0
+        return {"neg": round(neg, 3),
+             "neu": round(neu, 3),
+             "pos": round(pos, 3),
+             "compound": round(compound, 4)}
 
     def evalPercent(self):
         """Calculate percentage of entries that were recognized"""
@@ -81,11 +110,16 @@ class BaseDict():
         self.verdicts.append(verdict)
         output(self.name,verdict,value)
 
+    def normalize(self,value,max,min,mean):
+        return (value - mean) / (max - min) * 1.0
 
 class HashtagSent(BaseDict):
     # Citation required!!
     name = "HashtagSent"
     path = "data/hashtagsent/unigrams-pmilexicon.txt"
+    mean = 0.0
+    min = -6.9
+    max = 7.5
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -101,8 +135,8 @@ class HashtagSent(BaseDict):
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry):
-        score = self.calculate_score(entry,self.my_dict)
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
         self.scores.append(score)
         return score
 
@@ -118,6 +152,9 @@ class Sent140Lex(BaseDict):
     # Citation required!!
     name = "Sent140Lex"
     path = "data/sent140lex/unigrams-pmilexicon.txt"
+    mean = 0.0
+    max = 5.0
+    min = -5.0
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -133,8 +170,8 @@ class Sent140Lex(BaseDict):
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry):
-        score = self.calculate_score(entry,self.my_dict)
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
         self.scores.append(score)
         return score
 
@@ -149,8 +186,8 @@ class Sent140Lex(BaseDict):
 class Vader(BaseDict):
     name = "VADER"
 
-    def score(self,entry):
-        score = self.analyzer.polarity_scores(entry)['compound']
+    def score(self,entry,stopVal=0.0):
+        score = self.analyzer.polarity_scores(entry)
         return score
 
     def __init__(self,lex=None,emoji=None):
@@ -164,8 +201,11 @@ class Vader(BaseDict):
 class LabMT(BaseDict):
     name = "LabMT"
     path = "data/labmt/labmt2.txt"
+    mean = 5.0
+    max = 8.5
+    min = 1.3
 
-    def load(self,path):
+    def load(self,path,rmLimit=1.0):
         f = self.openWithPath(join(path),"r")
         i = 0
         unigrams = dict()
@@ -175,20 +215,26 @@ class LabMT(BaseDict):
             word,_,happs,stddev = l[:4]
             # we'll at least assume that the first four ar the same
             other_ranks = l[4:]
-            unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
+            happs = float(happs)
+            # ignore words with happiness 5+/-1
+            if abs(happs-self.threshold) > rmLimit:
+                unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
             i+=1
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry):
-        score = self.calculate_score(entry,self.my_dict)
+    def score(self,entry,stopVal=1.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
         self.scores.append(score)
         return score
-
-    def __init__(self,path=None):
+    
+    def __init__(self,path=None,rmLimit=None):
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
         self.scores = []
         self.verdicts = []
+
+def SentiWordNet(BaseDict):
+    pass

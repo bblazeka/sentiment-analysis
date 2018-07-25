@@ -6,7 +6,7 @@ def main():
 
     sentianalyzer.file_load('data/corpus/test.in')
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8,500)
-    sentianalyzer.set_dict(vader=True)
+    sentianalyzer.set_dict(vader=True,labmt=True,s140=True,hsent=True)
     sentianalyzer.score_corpus()
 
 if __name__ == '__main__':
