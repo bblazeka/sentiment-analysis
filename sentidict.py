@@ -5,7 +5,6 @@ import codecs
 from os.path import isfile,abspath,isdir,join
 from math import fabs
 from sentiutil import dict_convert, output, plotting
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import sys
 # handle both pythons
 if sys.version < '3':
@@ -62,15 +61,15 @@ class BaseDict():
                 happ = lex[word][idx]
                 if abs(happ-self.mean) >= stopVal:
                     if happ > self.mean:
-                        positive += (happ + 1)
+                        positive += (happ + stopVal)
                     elif happ < self.mean:
-                        negative += (happ - 1)
+                        negative += (happ - stopVal)
                     else:
-                        neutral += 1
+                        neutral += stopVal
                     totalcount += count
                     totalscore += count*lex[word][idx]
                 else:
-                    neutral += 1
+                    neutral += stopVal
         try:
             comp = totalscore / totalcount
         except:
@@ -185,18 +184,35 @@ class Sent140Lex(BaseDict):
 
 class Vader(BaseDict):
     name = "VADER"
+    path = "data/vader/unigrams-lexicon.txt"
+    min = -3.9
+    max = 3.4
+    mean = 0.0
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        unigrams = dict()
+        for line in f:
+            word,score,_,_ = line.rstrip().split("\t")
+            if word not in unigrams:
+                unigrams[word] = (i,float(score))
+                i+=1
+        f.close()
+        self.my_dict = unigrams
 
     def score(self,entry,stopVal=0.0):
-        score = self.analyzer.polarity_scores(entry)
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
         return score
 
-    def __init__(self,lex=None,emoji=None):
-        base_return = '../../../../../Documents/Github/sentiment-analysis/'
-        if lex == None or lex == True:
-            lex = base_return+'data/vader/unigrams-lexicon.txt'
-        if emoji == None:
-            emoji = base_return+'data/vader/utf8-emoji.txt'
-        self.analyzer = SentimentIntensityAnalyzer(lexicon_file=lex, emoji_lexicon=emoji)
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
+        self.scores = []
+        self.verdicts = []
 
 class LabMT(BaseDict):
     name = "LabMT"
