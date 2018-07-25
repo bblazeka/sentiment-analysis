@@ -74,7 +74,7 @@ class BaseDict():
         try:
             comp = totalscore / totalcount
         except:
-            comp = 0.0 
+            comp = self.mean
         negative = fabs(negative)
         compound = self.normalize(comp,self.max,self.min,self.mean)
         total = neutral + negative + positive
