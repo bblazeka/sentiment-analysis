@@ -22,7 +22,7 @@ class BaseDict():
     threshold = 0.0
     max = 0.0
     min = 0.0
-    mean = 0.0
+    center = 0.0
     name = ""
     unknown = float('nan')
     scores = []
@@ -59,10 +59,10 @@ class BaseDict():
         for word,count in word_dict.items():
             if word in lex:
                 happ = lex[word][idx]
-                if abs(happ-self.mean) >= stopVal:
-                    if happ > self.mean:
+                if abs(happ-self.center) >= stopVal:
+                    if happ > self.center:
                         positive += (happ + stopVal)
-                    elif happ < self.mean:
+                    elif happ < self.center:
                         negative += (happ - stopVal)
                     else:
                         neutral += stopVal
@@ -73,9 +73,9 @@ class BaseDict():
         try:
             comp = totalscore / totalcount
         except:
-            comp = self.mean
+            comp = self.center
         negative = fabs(negative)
-        compound = self.normalize(comp,self.max,self.min,self.mean)
+        compound = self.normalize(comp,self.max,self.min)
         total = neutral + negative + positive
         if total == 0:
             total = 1.0
@@ -107,16 +107,16 @@ class BaseDict():
         except:
             verdict = 0
         self.verdicts.append(verdict)
-        output(self.name,verdict,value)
+        return verdict
 
-    def normalize(self,value,max,min,mean):
-        return (value - mean) / (max - min) * 1.0
+    def normalize(self,value,max,min):
+        return 2.0 * (value - min) / (max - min) * 1.0 - 1
 
 class HashtagSent(BaseDict):
     # Citation required!!
     name = "HashtagSent"
     path = "data/hashtagsent/unigrams-pmilexicon.txt"
-    mean = 0.0
+    center = 0.0
     min = -6.9
     max = 7.5
 
@@ -151,7 +151,7 @@ class Sent140Lex(BaseDict):
     # Citation required!!
     name = "Sent140Lex"
     path = "data/sent140lex/unigrams-pmilexicon.txt"
-    mean = 0.0
+    center = 0.0
     max = 5.0
     min = -5.0
 
@@ -187,7 +187,7 @@ class Vader(BaseDict):
     path = "data/vader/unigrams-lexicon.txt"
     min = -3.9
     max = 3.4
-    mean = 0.0
+    center = 0.0
 
     def load(self,path):
         f = self.openWithPath(join(path),"r")
@@ -217,11 +217,11 @@ class Vader(BaseDict):
 class LabMT(BaseDict):
     name = "LabMT"
     path = "data/labmt/labmt2.txt"
-    mean = 5.0
+    center = 5.0
     max = 8.5
     min = 1.3
 
-    def load(self,path,rmLimit=1.0):
+    def load(self,path):
         f = self.openWithPath(join(path),"r")
         i = 0
         unigrams = dict()
@@ -232,14 +232,12 @@ class LabMT(BaseDict):
             # we'll at least assume that the first four ar the same
             other_ranks = l[4:]
             happs = float(happs)
-            # ignore words with happiness 5+/-1
-            if abs(happs-self.threshold) > rmLimit:
-                unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
+            unigrams[word] = [i,float(happs),float(stddev)]+other_ranks
             i+=1
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry,stopVal=1.0):
+    def score(self,entry,stopVal=0.0):
         score = self.calculate_score(entry,self.my_dict,stopVal)
         self.scores.append(score)
         return score
