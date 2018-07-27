@@ -3,7 +3,7 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output, plotting, classify_score, evalPercent, plot_two, make_spider
+from sentiutil import output, plotting, classify_score, evalPercent, plot_two, faceting
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, BaseDict
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -86,6 +86,7 @@ class SentimentAnalyzer():
         return scores
 
     def scores(self):
+        print("")
         for dict in self.dicts:
             i = 0
             plus = 0
@@ -113,7 +114,6 @@ class SentimentAnalyzer():
         """for an entered sentence, radar charts for all methods are outputed"""
         scores = []
         title = self.corpus[index]
-        print(title)
         for dict in self.dicts:
             scores.append(dict.scores[index])
 
@@ -123,15 +123,8 @@ class SentimentAnalyzer():
             'neu': [scores[0]['neu'], scores[1]['neu'], scores[3]['neu'], scores[2]['neu']],
             'neg': [scores[0]['neg'], scores[1]['neg'], scores[3]['neg'], scores[2]['neg']]
         })
-        print(df)
             
-        # Create a color palette:
-        my_palette = plt.cm.get_cmap("Set2", len(df.index))
-
-        # Loop to plot
-        for row in range(0, len(df.index)):
-            print("hey")
-            make_spider(df, row=row, title='group '+df['group'][row], color=my_palette(row))
+        faceting(title,df)
 
 
     def __init__(self):

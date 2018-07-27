@@ -69,6 +69,22 @@ def joinFiles():
         print("4", end=",")
         print(open(folder+"/"+filename).read())
 
+def faceting(title,df):
+    # ------- PART 2: Apply to all individuals
+    # initialize the figure
+    my_dpi=96
+    plt.figure(figsize=(1000/my_dpi, 1000/my_dpi), dpi=my_dpi)
+    plt.suptitle(title)
+
+    # Create a color palette:
+    my_palette = plt.cm.get_cmap("Set2", len(df.index))
+
+    # Loop to plot
+    for row in range(0, len(df.index)):
+        make_spider(df, row=row, title=df['group'][row], color=my_palette(row))
+
+    plt.show()
+
 
 def make_spider(df, row, title, color):
     
@@ -93,8 +109,8 @@ def make_spider(df, row, title, color):
     
     # Draw ylabels
     ax.set_rlabel_position(0)
-    plt.yticks([10,20,30], ["10","20","30"], color="grey", size=7)
-    plt.ylim(0,40)
+    plt.yticks([0.25,0.5,0.75], ["0,25","0,5","0,75"], color="grey", size=7)
+    plt.ylim(0,1)
     
     # Ind1
     values=df.loc[row].drop('group').values.flatten().tolist()
@@ -104,8 +120,3 @@ def make_spider(df, row, title, color):
     
     # Add a title
     plt.title(title, size=11, color=color, y=1.1)
-    
-    # ------- PART 2: Apply to all individuals
-    # initialize the figure
-    my_dpi=96
-    plt.figure(figsize=(1000/my_dpi, 1000/my_dpi), dpi=my_dpi)
