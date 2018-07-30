@@ -24,15 +24,6 @@ def output(name,verdict,value):
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
 
-def plot_two(title,indexes,first_scores,second_scores,entries,name_1="first",name_2="second"):
-    plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
-    plt.subplots_adjust(top=0.8)
-    plt.plot(indexes,first_scores, label=name_1)
-    plt.plot(indexes,second_scores, label=name_2)
-    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0.)
-    plt.show()
-
 def plotting(title,indexes,vader_scores,labmt_scores,hs_scores,s140_scores):
     plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
     plt.subplots_adjust(top=0.8)
@@ -42,6 +33,23 @@ def plotting(title,indexes,vader_scores,labmt_scores,hs_scores,s140_scores):
     plt.plot(indexes,s140_scores, label='sent140')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
            ncol=2, mode="expand", borderaxespad=0.)
+    plt.show()
+
+def plotting_separated(title,dicts,df):
+    """plots on separate graph in the same window"""
+    my_dpi=96
+    plt.figure(num='Separate graphs of lexicons',figsize=(1000/my_dpi, 1000/my_dpi), dpi=my_dpi)
+    plt.suptitle(title)
+    indexes = [x for x in range(len(df.index))] 
+
+    for i in range(4):
+        values = df[dicts[i]].tolist()
+        plt.yticks([0.25*x for x in range(-4,5,1)],[str(0.25*x) for x in range(-4,5,1)])
+        ax = plt.subplot(2,2,i+1)
+        ax.plot(indexes, values, linewidth=2, linestyle='solid')
+        plt.ylim(-1,1)
+        plt.title(dicts[i])
+
     plt.show()
 
 def classify_score(test_correct,evaluations):
@@ -69,18 +77,18 @@ def joinFiles():
         print("4", end=",")
         print(open(folder+"/"+filename).read())
 
-def faceting(title,df):
+def faceting(sentence,df):
     # ------- PART 2: Apply to all individuals
     # initialize the figure
     my_dpi=96
-    plt.figure(figsize=(1000/my_dpi, 1000/my_dpi), dpi=my_dpi)
-    plt.suptitle(title)
+    plt.figure(num='Sentence spider analysis',figsize=(1000/my_dpi, 1000/my_dpi), dpi=my_dpi)
+    plt.suptitle(sentence)
 
     # Create a color palette:
     my_palette = plt.cm.get_cmap("Set2", len(df.index))
 
     # Loop to plot
-    for row in range(0, len(df.index)):
+    for row in range(len(df.index)):
         make_spider(df, row=row, title=df['group'][row], color=my_palette(row))
 
     plt.show()

@@ -11,8 +11,10 @@ def main():
     sentianalyzer.set_dict(vader=True,labmt=True,s140=True,hsent=True)
     sentianalyzer.score_corpus(logging=True)
     sentianalyzer.scores()
-    sentianalyzer.graph(False)
-    sentianalyzer.radarChart(8)
+    sentianalyzer.graph(separate=True)
+    #sentianalyzer.graph()
+    sentianalyzer.radarChart(2)
+    #sentianalyzer.radarChart(3)
 
 if __name__ == '__main__':
     main()

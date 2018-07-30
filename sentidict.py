@@ -3,6 +3,7 @@
 
 import codecs
 from os.path import isfile,abspath,isdir,join
+from nltk.corpus import stopwords
 from math import fabs
 from sentiutil import dict_convert, output, plotting
 import sys
@@ -56,7 +57,13 @@ class BaseDict():
         positive = 0.0
         negative = 0.0
         neutral = 0
+        stopVal = stopVal * (self.max - self.center)
         for word,count in word_dict.items():
+            # ignore stop words
+            stops = set(stopwords.words("english"))
+            if word in stops:
+                continue
+            # process other words
             if word in lex:
                 happ = lex[word][idx]
                 if abs(happ-self.center) >= stopVal:
@@ -82,9 +89,9 @@ class BaseDict():
         neg = negative / total * 1.0
         neu = neutral / total * 1.0
         pos = positive / total * 1.0
-        return {"neg": round(neg, 3),
-             "neu": round(neu, 3),
-             "pos": round(pos, 3),
+        return {"negative": round(neg, 3),
+             "neutral": round(neu, 3),
+             "positive": round(pos, 3),
              "compound": round(compound, 4)}
 
     def evalPercent(self):
@@ -129,8 +136,6 @@ class HashtagSent(BaseDict):
             if word not in unigrams:
                 unigrams[word] = (i,float(score))
                 i+=1
-            else:
-                print("complaining")
         f.close()
         self.my_dict = unigrams
 
@@ -164,8 +169,6 @@ class Sent140Lex(BaseDict):
             if word not in unigrams:
                 unigrams[word] = (i,float(score))
                 i+=1
-            else:
-                print("complaining")
         f.close()
         self.my_dict = unigrams
 

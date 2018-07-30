@@ -3,7 +3,7 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output, plotting, classify_score, evalPercent, plot_two, faceting
+from sentiutil import output, plotting, classify_score, evalPercent, faceting, plotting_separated
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, BaseDict
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -54,6 +54,8 @@ class SentimentAnalyzer():
         """
             sets the used dictionaries by supplying their directory path or True if should
             be loaded from the default path data/{algorithm}/{filename}.txt
+
+            Filter parameter removes neutral and stop words (with happiness less than 10%)
         """
         self.dicts = []
         if vader != None:
@@ -65,7 +67,7 @@ class SentimentAnalyzer():
         if hsent != None:
             self.dicts.append(HashtagSent(hsent))
 
-    def score_corpus(self,logging=True):
+    def score_corpus(self,filter=0.0,logging=True):
         """calculates the scores of the corpus"""
         scores = []
         ind = 0
@@ -76,7 +78,7 @@ class SentimentAnalyzer():
                 print(entry)
                 print("\"\"\"\n")
             for dict in self.dicts:
-                score = dict.score(entry)
+                score = dict.score(entry,filter)
                 scores.append(score)
                 verdict = dict.judge(score['compound'])
                 if logging:
@@ -86,7 +88,7 @@ class SentimentAnalyzer():
         return scores
 
     def scores(self):
-        print("")
+        print("\nPercentage of correct guesses:")
         for dict in self.dicts:
             i = 0
             plus = 0
@@ -98,20 +100,23 @@ class SentimentAnalyzer():
             print(dict.name,end=" ")
             print(plus * 1.0 / i)
 
-    def graph(self,comp=True,pos=False,neg=False):
-        """drawing graphs"""
-        
+    def graph(self,separate=False,comp=True,pos=False,neg=False):
+        """
+            drawing graphs, which parameters are set to true, that graphs are drawn
+            With setting parameter separate to True you can draw them on separate
+            graphs in the same window
+        """
         if(comp):
-            draw_filtered(self.corpus,self.dicts,'compound')
+            draw_filtered(self.corpus,self.dicts,'compound',separate)
         
         if(pos):
-            draw_filtered(self.corpus,self.dicts,'pos')
+            draw_filtered(self.corpus,self.dicts,'positive',separate)
 
         if(neg):
-            draw_filtered(self.corpus,self.dicts,'neg')
+            draw_filtered(self.corpus,self.dicts,'negative',separate)
 
     def radarChart(self,index):
-        """for an entered sentence, radar charts for all methods are outputed"""
+        """for an entered sentence, radar charts for all dictionaries are shown"""
         scores = []
         title = self.corpus[index]
         for dict in self.dicts:
@@ -119,9 +124,9 @@ class SentimentAnalyzer():
 
         df = pd.DataFrame({
             'group': ['Vader','LabMT','Sent140','HSent'],
-            'pos': [scores[0]['pos'], scores[1]['pos'], scores[3]['pos'], scores[2]['pos']],
-            'neu': [scores[0]['neu'], scores[1]['neu'], scores[3]['neu'], scores[2]['neu']],
-            'neg': [scores[0]['neg'], scores[1]['neg'], scores[3]['neg'], scores[2]['neg']]
+            'positive': [scores[0]['positive'], scores[1]['positive'], scores[3]['positive'], scores[2]['positive']],
+            'neutral': [scores[0]['neutral'], scores[1]['neutral'], scores[3]['neutral'], scores[2]['neutral']],
+            'negative': [scores[0]['negative'], scores[1]['negative'], scores[3]['negative'], scores[2]['negative']]
         })
             
         faceting(title,df)
@@ -130,9 +135,18 @@ class SentimentAnalyzer():
     def __init__(self):
         self.dicts = []
 
-def draw_filtered(corpus,dicts,param):
+def draw_filtered(corpus,dicts,param,separate=False):
     indexes = [x for x in range(len(corpus))]
     scores = []
     for dict in dicts:
         scores.append([x[param] for x in dict.scores])
-    plotting(param,indexes,scores[0],scores[1],scores[3],scores[2])
+    if separate:
+        df = pd.DataFrame({
+            'vader':scores[0],
+            'labmt':scores[1],
+            's140':scores[3],
+            'hsent':scores[2]
+        })
+        plotting_separated(param,['vader','labmt','s140','hsent'],df)
+    else:
+        plotting(param,indexes,scores[0],scores[1],scores[3],scores[2])
