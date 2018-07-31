@@ -27,11 +27,11 @@ class SentimentAnalyzer():
         """
             loads data from csv file
 
-            file_path - path to the file,
-            column - column number where the sentences are,
-            happs - column number of happiness rating,
-            limit - limit of rows that should be read (default 5000),
-            split - the way data is splitted in the file (mostly: "," or can be: ,)
+            file_path : path to the file,
+            column : column number where the sentences are,
+            happs : column number of happiness rating,
+            limit : limit of rows that should be read (default 5000),
+            split : the way data is splitted in the file (mostly: "," or can be: ,)
         """
         with open(file_path, 'r', errors='replace') as f:
             reader = csv.reader(f)
@@ -45,7 +45,17 @@ class SentimentAnalyzer():
                 i+=1
 
     def txt_load(self,file_path,column,happs=-1,separator="\t", pos=1, neg=-1, neu=0):
-        """load from text file"""
+        """
+            load sentences and happs ratings from a text file
+
+            file_path : path,
+            column : column where sentences are,
+            happs : column where happs are,
+            separator : symbol that separates columns,
+            pos : positive rating,
+            neg : negative rating,
+            neu : neutral rating
+        """
         with open(file_path, 'r', errors='replace') as f:
             lines = f.readlines()
         i = 0
@@ -59,7 +69,13 @@ class SentimentAnalyzer():
             i+=1
 
     def db_load(self,db_path,table,column=0):
-        """loads the data from sqlite3 database, with specified table"""
+        """
+            loads the data from sqlite3 database
+
+            db_path : path to the database file,
+            table : name of the table,
+            column : number of the column where sentences are
+        """
         con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []
@@ -93,8 +109,8 @@ class SentimentAnalyzer():
         """
             calculates the scores of the corpus
 
-            filter - filtering coeff, by default set to 0.0,
-            logging - log analyzed sentences to stdout, by default set to True
+            filter : filtering coeff, by default set to 0.0,
+            logging : log analyzed sentences to stdout, by default set to True
         """
         scores = []
         ind = 0
@@ -115,6 +131,9 @@ class SentimentAnalyzer():
         return scores
 
     def scores(self):
+        """
+            write the percentage of correct guesses within the corpus
+        """
         print("\nPercentage of correct guesses:")
         for dict in self.dicts:
             i = 0
@@ -130,10 +149,10 @@ class SentimentAnalyzer():
         """
             graph drawing method
             
-            separate - if true, graphs are separated, otherwise joined on one graph (def: False),
-            comp - draw compound scores graph (def: True),
-            pos - draw positive scores graph (def: False),
-            neg - draw negative scores graph (def: False)
+            separate : if true, graphs are separated, otherwise joined on one graph (default False),
+            comp : draw compound scores graph (default True),
+            pos : draw positive scores graph (default False),
+            neg : draw negative scores graph (default False)
         """
         if(comp):
             draw_filtered(self.corpus,self.dicts,'compound',separate)
@@ -145,7 +164,11 @@ class SentimentAnalyzer():
             draw_filtered(self.corpus,self.dicts,'negative',separate)
 
     def radarChart(self,index):
-        """for an entered sentence, radar charts for all dictionaries are shown"""
+        """
+            for an entered sentence, display radar charts for all dictionaries are shown
+        
+            index : index of a sentence in a corpus
+        """
         scores = []
         title = self.corpus[index]
         for dict in self.dicts:
@@ -182,7 +205,7 @@ def draw_filtered(corpus,dicts,param,separate=False):
         plotting(param,indexes,scores[0],scores[1],scores[3],scores[2])
 
 def norm_score(score,pos,neg,neu):
-    """normalizes the score converts pos,neu,neg to 1,0,-1 set"""
+    """normalizes the score converts; pos,neu,neg to 1,0,-1 set"""
     if score == pos:
         return 1
     elif score == neg:
