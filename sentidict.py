@@ -20,7 +20,7 @@ else:
 
 class BaseDict():
 
-    threshold = 0.0
+    norm_threshold = 0.0
     max = 0.0
     min = 0.0
     center = 0.0
@@ -94,21 +94,13 @@ class BaseDict():
              "positive": round(pos, 3),
              "compound": round(compound, 4)}
 
-    def evalPercent(self):
-        """Calculate percentage of entries that were recognized"""
-        unknown = 0
-        for i in self.verdicts:
-            if i == 0:
-                unknown += 1
-        return 1-unknown/len(self.verdicts)*1.0
-
     def judge(self,value):
         verdict = 0
         try:
-            if(value > self.threshold):
+            if(value > self.norm_threshold):
                 verdict = 1
             elif(value == self.unknown):
-                verdict =  0
+                verdict =  ''
             else:
                 verdict = -1
         except:

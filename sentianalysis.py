@@ -7,6 +7,7 @@ from sentiutil import output, plotting, classify_score, evalPercent, faceting, p
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, BaseDict
 import pandas as pd
 import matplotlib.pyplot as plt
+import csv
 
 
 class SentimentAnalyzer():
@@ -14,6 +15,7 @@ class SentimentAnalyzer():
     corpus = []
     correct = []
     dicts = []
+    limit = 5000
 
     def file_load(self,file_path,column=-1,happs=-1):
         """loads data from a file made from only sentences"""
@@ -21,30 +23,52 @@ class SentimentAnalyzer():
         self.corpus = f.readlines()
         f.close()
 
-    def csv_load(self,file_path,column,happs=-1,limit=5000):
-        """loads data from csv file, from a given column with a given happs"""
+    def csv_load(self,file_path,column,happs=-1, pos=1, neg=-1, neu=0):
+        """
+            loads data from csv file
+
+            file_path - path to the file,
+            column - column number where the sentences are,
+            happs - column number of happiness rating,
+            limit - limit of rows that should be read (default 5000),
+            split - the way data is splitted in the file (mostly: "," or can be: ,)
+        """
+        with open(file_path, 'r', errors='replace') as f:
+            reader = csv.reader(f)
+            i = 0
+            for row in reader:
+                if i > self.limit:
+                    break
+                self.corpus.append(row[column])
+                if happs != -1:
+                    self.correct.append(norm_score(int(row[happs]),pos, neg, neu))
+                i+=1
+
+    def txt_load(self,file_path,column,happs=-1,separator="\t", pos=1, neg=-1, neu=0):
+        """load from text file"""
         with open(file_path, 'r', errors='replace') as f:
             lines = f.readlines()
         i = 0
         for line in lines:
-            if i > limit:
+            if(i>self.limit):
                 break
-            entry = line.split(",")
-            self.corpus.append(entry[column].replace('"', ''))
+            line = line.split(separator)
+            self.corpus.append(line[column])
             if happs != -1:
-                self.correct.append(int(entry[happs].replace('"', '')))
+                self.correct.append(norm_score(int(line[happs]),pos,neg,neu))
             i+=1
 
-    def db_load(self,db_path,table,column=0,limit=0):
+    def db_load(self,db_path,table,column=0):
         """loads the data from sqlite3 database, with specified table"""
         con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        if limit == 0:
+        try:
+            input = cursor.fetchmany(self.limit)
+        except:
             input = cursor.fetchall()
-        else:
-            input = cursor.fetchmany(limit)
+            print("Fetching limited number FAILED, fetched all: "+str(len(input)))
         for entry in input:
             text = entry[column]
             if text != "[deleted]" and text != "[removed]" and text != "":    
@@ -53,9 +77,7 @@ class SentimentAnalyzer():
     def set_dict(self,vader=None,labmt=None,s140=None,hsent=None):
         """
             sets the used dictionaries by supplying their directory path or True if should
-            be loaded from the default path data/{algorithm}/{filename}.txt
-
-            Filter parameter removes neutral and stop words (with happiness less than 10%)
+            be loaded from the default path: data/{algorithm}/{filename}.txt
         """
         self.dicts = []
         if vader != None:
@@ -68,7 +90,12 @@ class SentimentAnalyzer():
             self.dicts.append(HashtagSent(hsent))
 
     def score_corpus(self,filter=0.0,logging=True):
-        """calculates the scores of the corpus"""
+        """
+            calculates the scores of the corpus
+
+            filter - filtering coeff, by default set to 0.0,
+            logging - log analyzed sentences to stdout, by default set to True
+        """
         scores = []
         ind = 0
         for entry in [x.rstrip() for x in self.corpus]:
@@ -93,8 +120,7 @@ class SentimentAnalyzer():
             i = 0
             plus = 0
             for verdict in dict.verdicts:
-                norm = 2 * verdict + 2
-                if norm == self.correct[i]:
+                if verdict == self.correct[i]:
                     plus += 1
                 i += 1
             print(dict.name,end=" ")
@@ -102,9 +128,12 @@ class SentimentAnalyzer():
 
     def graph(self,separate=False,comp=True,pos=False,neg=False):
         """
-            drawing graphs, which parameters are set to true, that graphs are drawn
-            With setting parameter separate to True you can draw them on separate
-            graphs in the same window
+            graph drawing method
+            
+            separate - if true, graphs are separated, otherwise joined on one graph (def: False),
+            comp - draw compound scores graph (def: True),
+            pos - draw positive scores graph (def: False),
+            neg - draw negative scores graph (def: False)
         """
         if(comp):
             draw_filtered(self.corpus,self.dicts,'compound',separate)
@@ -132,8 +161,9 @@ class SentimentAnalyzer():
         faceting(title,df)
 
 
-    def __init__(self):
+    def __init__(self,limit=5000):
         self.dicts = []
+        self.limit = limit
 
 def draw_filtered(corpus,dicts,param,separate=False):
     indexes = [x for x in range(len(corpus))]
@@ -150,3 +180,14 @@ def draw_filtered(corpus,dicts,param,separate=False):
         plotting_separated(param,['vader','labmt','s140','hsent'],df)
     else:
         plotting(param,indexes,scores[0],scores[1],scores[3],scores[2])
+
+def norm_score(score,pos,neg,neu):
+    """normalizes the score converts pos,neu,neg to 1,0,-1 set"""
+    if score == pos:
+        return 1
+    elif score == neg:
+        return -1
+    elif score == neu:
+        return 0
+    else:
+        raise ValueError("Positive and negative values not defined correctly while reading a file")

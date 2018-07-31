@@ -14,6 +14,7 @@ def dict_convert(doc):
     return counts
 
 def output(name,verdict,value):
+    """Function that formats the output depending on the evaluation"""
     try:
         if(verdict>0):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"positive",value))
