@@ -9,11 +9,13 @@ def main():
     #sentianalyzer.csv_load('data/corpus/twitter/1600000.processed.noemoticon.csv',5,0,4,0)
     #sentianalyzer.csv_load('data/corpus/imdb/neg.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
-    sentianalyzer.set_dict(vader=True,labmt=True,s140=True,hsent=True)
+    sentianalyzer.set_dict()
     sentianalyzer.score_corpus(logging=True)
     sentianalyzer.scores()
+
+    # currently all the graphing expects first 4 dicts enabled!!!
     #sentianalyzer.graph(separate=True)
-    #sentianalyzer.graph()
+    sentianalyzer.graph()
     #sentianalyzer.radarChart(2)
     #sentianalyzer.radarChart(3)
 

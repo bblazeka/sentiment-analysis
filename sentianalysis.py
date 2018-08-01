@@ -4,7 +4,7 @@
 import sqlite3
 from os.path import isfile,abspath,isdir,join
 from sentiutil import output, plotting, classify_score, evalPercent, faceting, plotting_separated
-from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, BaseDict
+from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
@@ -90,9 +90,10 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":    
                 self.corpus.append(text)
     
-    def set_dict(self,vader=None,labmt=None,s140=None,hsent=None):
+    def set_dict(self,vader=True,labmt=True,s140=True,hsent=True,swn=True):
         """
-            sets the used dictionaries by supplying their directory path or True if should
+            all dictionaries are set to be used, in case user sets the param to None,
+            dictionary is disabled. User passes the path as a parameter, otherwise it will
             be loaded from the default path: data/{algorithm}/{filename}.txt
         """
         self.dicts = []
@@ -104,6 +105,8 @@ class SentimentAnalyzer():
             self.dicts.append(Sent140Lex(s140))
         if hsent != None:
             self.dicts.append(HashtagSent(hsent))
+        if swn != None:
+            self.dicts.append(SentiWordNet(swn))
 
     def score_corpus(self,filter=0.0,logging=True):
         """

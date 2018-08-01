@@ -101,6 +101,8 @@ class BaseDict():
                 verdict = 1
             elif(value == self.unknown):
                 verdict =  ''
+            elif(value == self.center):
+                verdict = 0
             else:
                 verdict = -1
         except:
@@ -237,7 +239,7 @@ class LabMT(BaseDict):
         self.scores.append(score)
         return score
     
-    def __init__(self,path=None,rmLimit=None):
+    def __init__(self,path=None):
         try:
             self.load(path)
         except TypeError:
@@ -245,5 +247,43 @@ class LabMT(BaseDict):
         self.scores = []
         self.verdicts = []
 
-def SentiWordNet(BaseDict):
-    pass
+class SentiWordNet(BaseDict):
+    name = "SentiWordNet"
+    path = "data/sentiwordnet/SentiWordNet_3.0.0_20130122.txt"
+    center = 0.0
+    max = 1.0
+    min = -1.0
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        my_dict = dict()
+        for line in f:
+            splitline = line.rstrip().split("\t")
+            words = map(lambda x: x[:-2],splitline[4].split(" "))
+            for word in words:
+                if word not in my_dict:
+                    my_dict[word] = splitline[2:4]
+                else:
+                    my_dict[word] = my_dict[word]+splitline[2:4]
+        i = 0
+        for word in my_dict:
+            # take every second measure
+            pos_scores = list(map(float,my_dict[word][0::2]))
+            neg_scores = list(map(float,my_dict[word][1::2]))
+            my_dict[word] = (i,sum(pos_scores)/len(pos_scores)-sum(neg_scores)/len(neg_scores))
+            i+=1
+        f.close()
+        self.my_dict = my_dict
+
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
+        return score
+
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
+        self.scores = []
+        self.verdicts = []
