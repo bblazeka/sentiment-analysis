@@ -15,7 +15,7 @@ def main():
 
     # currently all the graphing expects first 4 dicts enabled!!!
     #sentianalyzer.graph(separate=True)
-    sentianalyzer.graph()
+    #sentianalyzer.graph()
     #sentianalyzer.radarChart(2)
     #sentianalyzer.radarChart(3)
 

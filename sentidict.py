@@ -287,3 +287,98 @@ class SentiWordNet(BaseDict):
             self.load(self.path)
         self.scores = []
         self.verdicts = []
+
+class SenticNet(BaseDict):
+    name = "SenticNet"
+    path = "data/senticnet/senticnet3.json"
+    center = 0.0
+    max = 1.0
+    min = -1.0
+
+    def load(self,path):
+        import json
+        my_dict = dict()
+        scraped = json.load(self.openWithPath(join(path),"r"))
+        for line in scraped:
+            my_dict[line] = scraped[line]
+        self.my_dict = my_dict
+
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
+        return score
+
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
+        self.scores = []
+        self.verdicts = []
+
+class SOCAL(BaseDict):
+    name = "SOCAL"
+    path = "data/socal/all_dictionaries-utf8.txt"
+    min = -30.2
+    center = 0.0
+    max = 30.7
+
+    def load(self,path):
+        my_dict = dict()
+        f = self.openWithPath(join(path),"r")
+        i = 0
+        for line in f:
+            line_split = line.rstrip().split("\t")
+            if len(line_split) > 1:
+                my_dict[line_split[0]] = (i,float(line_split[1]))
+                i+=1
+        f.close()
+        self.my_dict = my_dict
+
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
+        return score
+
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
+        self.scores = []
+        self.verdicts = []
+
+class WDAL(BaseDict):
+    name = "WDAL"
+    path = "data/wdal/words.txt"
+    min = 0
+    center = 1.5
+    max = 3.0
+
+    def load(self,path):
+        f = self.openWithPath(join(path),"r")
+        my_dict = dict()
+        # read the header line
+        f.readline()
+        i = 0
+        for line in f.readlines():
+            a = line.rstrip().split(" ")
+            word = a[0]
+            # pleasantness,activation,imagery
+            pleasantness,_,_ = a[-3:]
+            my_dict[word] = (i,float(pleasantness))
+            i+=1
+        self.my_dict = my_dict
+
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
+        return score
+
+    def __init__(self,path=None):
+        try:
+            self.load(path)
+        except TypeError:
+            self.load(self.path)
+        self.scores = []
+        self.verdicts = []

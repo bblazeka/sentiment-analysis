@@ -4,7 +4,7 @@
 import sqlite3
 from os.path import isfile,abspath,isdir,join
 from sentiutil import output, plotting, classify_score, evalPercent, faceting, plotting_separated
-from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict
+from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, SenticNet, SOCAL, WDAL
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
@@ -90,7 +90,7 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":    
                 self.corpus.append(text)
     
-    def set_dict(self,vader=True,labmt=True,s140=True,hsent=True,swn=True):
+    def set_dict(self,vader=True,labmt=True,s140=True,hsent=True,swn=True,snet=True,socal=True,wdal=True):
         """
             all dictionaries are set to be used, in case user sets the param to None,
             dictionary is disabled. User passes the path as a parameter, otherwise it will
@@ -107,10 +107,16 @@ class SentimentAnalyzer():
             self.dicts.append(HashtagSent(hsent))
         if swn != None:
             self.dicts.append(SentiWordNet(swn))
+        if snet != None:
+            self.dicts.append(SenticNet(snet))
+        if socal != None:
+            self.dicts.append(SOCAL(socal))
+        if wdal != None:
+            self.dicts.append(WDAL(wdal))
 
     def score_corpus(self,filter=0.0,logging=True):
         """
-            calculates the scores of the corpus
+            calculates the scores of the corpus (iterates through every sentence and every dictionary)
 
             filter : filtering coeff, by default set to 0.0,
             logging : log analyzed sentences to stdout, by default set to True
