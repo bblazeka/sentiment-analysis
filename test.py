@@ -13,10 +13,9 @@ def main():
     sentianalyzer.score_corpus(logging=True)
     sentianalyzer.scores()
 
-    # currently all the graphing expects first 4 dicts enabled!!!
-    #sentianalyzer.graph(separate=True)
-    #sentianalyzer.graph()
-    #sentianalyzer.radarChart(2)
+    sentianalyzer.graph(separate=True)
+    sentianalyzer.graph()
+    sentianalyzer.radarChart(2)
     #sentianalyzer.radarChart(3)
 
 if __name__ == '__main__':

@@ -30,8 +30,9 @@ class SentimentAnalyzer():
             file_path : path to the file,
             column : column number where the sentences are,
             happs : column number of happiness rating,
-            limit : limit of rows that should be read (default 5000),
-            split : the way data is splitted in the file (mostly: "," or can be: ,)
+            pos : positive rating,
+            neg : negative rating,
+            neu : neutral rating
         """
         with open(file_path, 'r', errors='replace') as f:
             reader = csv.reader(f)
@@ -184,10 +185,10 @@ class SentimentAnalyzer():
             scores.append(dict.scores[index])
 
         df = pd.DataFrame({
-            'group': ['Vader','LabMT','Sent140','HSent'],
-            'positive': [scores[0]['positive'], scores[1]['positive'], scores[3]['positive'], scores[2]['positive']],
-            'neutral': [scores[0]['neutral'], scores[1]['neutral'], scores[3]['neutral'], scores[2]['neutral']],
-            'negative': [scores[0]['negative'], scores[1]['negative'], scores[3]['negative'], scores[2]['negative']]
+            'group': [x.name for x in self.dicts],
+            'positive': [x['positive'] for x in scores],
+            'neutral': [x['neutral'] for x in scores],
+            'negative': [x['negative'] for x in scores]
         })
             
         faceting(title,df)
@@ -202,16 +203,14 @@ def draw_filtered(corpus,dicts,param,separate=False):
     scores = []
     for dict in dicts:
         scores.append([x[param] for x in dict.scores])
+    cols = [x.name for x in dicts]
     if separate:
-        df = pd.DataFrame({
-            'vader':scores[0],
-            'labmt':scores[1],
-            's140':scores[3],
-            'hsent':scores[2]
-        })
-        plotting_separated(param,['vader','labmt','s140','hsent'],df)
+        df = pd.DataFrame()
+        for i in range(len(cols)):
+            df.insert(i,cols[i],scores[i])
+        plotting_separated(param,cols,df)
     else:
-        plotting(param,indexes,scores[0],scores[1],scores[3],scores[2])
+        plotting(param,indexes,cols,scores)
 
 def norm_score(score,pos,neg,neu):
     """normalizes the score converts; pos,neu,neg to 1,0,-1 set"""
