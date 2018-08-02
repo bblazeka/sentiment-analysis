@@ -5,7 +5,7 @@ import codecs
 from os.path import isfile,abspath,isdir,join
 from nltk.corpus import stopwords
 from math import fabs
-from sentiutil import dict_convert, output, plotting
+from sentiutil import dict_convert, output
 import sys
 # handle both pythons
 if sys.version < '3':

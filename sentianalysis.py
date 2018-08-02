@@ -3,7 +3,8 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output, plotting, classify_score, evalPercent, faceting, plotting_separated
+from sentiutil import output, classify_score, evalPercent
+from sentigraph import plotting, plotting_separated, faceting
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, SenticNet, SOCAL, WDAL
 import pandas as pd
 import matplotlib.pyplot as plt
