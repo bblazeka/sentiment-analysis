@@ -2,6 +2,7 @@ import numpy
 import string
 import sqlite3
 import os
+import re
 from os.path import isfile,abspath,isdir,join
 from collections import defaultdict
 from matplotlib import pyplot as plt
@@ -16,6 +17,9 @@ def dict_convert(doc):
     """convert a sentence to a dictionary entry"""
     counts = defaultdict(int)
     for word in [x.lower() for x in doc.split()]:
+        # to save (some) words at the end of a sentence from being ignored
+        if len(word) > 5:
+            word = re.sub('[!.,?]+', '', word)
         counts[word]+=1
     return counts
 

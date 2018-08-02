@@ -79,10 +79,10 @@ class BaseDict():
                     neutral += stopVal
         try:
             comp = totalscore / totalcount
+            compound = self.normalize(comp,self.max,self.min)
         except:
-            comp = self.center
+            compound = 0.0
         negative = fabs(negative)
-        compound = self.normalize(comp,self.max,self.min)
         total = neutral + negative + positive
         if total == 0:
             total = 1.0
@@ -101,7 +101,7 @@ class BaseDict():
                 verdict = 1
             elif(value == self.unknown):
                 verdict =  ''
-            elif(value == self.center):
+            elif(value == self.norm_threshold):
                 verdict = 0
             else:
                 verdict = -1

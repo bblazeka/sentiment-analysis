@@ -119,7 +119,8 @@ class SentimentAnalyzer():
         """
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
 
-            filter : filtering coeff, by default set to 0.0,
+            filter : coeff for filtering of the words that are not relevant, higher it is, less 
+            words are taken into account when scoring the corpus. By default set to 0.0,
             logging : log analyzed sentences to stdout, by default set to True
         """
         scores = []
@@ -140,9 +141,9 @@ class SentimentAnalyzer():
             ind+=1
         return scores
 
-    def scores(self):
+    def efficiency(self):
         """
-            write the percentage of correct guesses within the corpus
+            write the percentage of correct guesses within the corpus per dictionary
         """
         print("\nPercentage of correct guesses:")
         for dict in self.dicts:
