@@ -1,19 +1,15 @@
-import numpy
-import string
-import sqlite3
 import os
 import re
 from os.path import isfile,abspath,isdir,join
 from collections import defaultdict
 
-
 def dict_convert(sentence):
-    """convert a sentence to a dictionary entry"""
+    """convert a sentence to a dictionary of word-count pairs"""
     counts = defaultdict(int)
     for word in [x.lower() for x in sentence.split()]:
         # to save (some) words at the end of a sentence from being ignored
         if len(word) > 5:
-            word = re.sub('[!.,?]+', '', word)
+            word = re.sub('[!.,?<>]+', '', word)
         counts[word]+=1
     return counts
 
@@ -28,21 +24,6 @@ def output(name,verdict,value):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"neutral",value))
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
-
-def classify_score(test_correct,evaluations):
-    """Returns percentage of verdicts that were correct"""
-    correct = 0
-    for i in range(len(test_correct)):
-        if(test_correct[i] == evaluations[i]):
-            correct+=1
-    return correct*1.0/len(test_correct)*1.0
-
-def evalPercent(evaluations):
-    unknown = 0
-    for i in evaluations:
-        if i == 0:
-            unknown += 1
-    return 1-unknown/len(evaluations)*1.0
 
 def joinFiles():
     folder = os.getcwd()+"/data/testing/aclImdb/test/pos"

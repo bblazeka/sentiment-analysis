@@ -66,12 +66,13 @@ class BaseDict():
             if word in lex:
                 happ = lex[word][idx]
                 if abs(happ-self.center) >= stopVal:
+                    # for now, pos, neu and neg are calculated only quantitative
                     if happ > self.center:
-                        positive += (happ + stopVal)
+                        positive += 1
                     elif happ < self.center:
-                        negative += (happ - stopVal)
+                        negative += 1
                     else:
-                        neutral += stopVal
+                        neutral += 1
                     totalcount += count
                     totalscore += count*lex[word][idx]
                 else:

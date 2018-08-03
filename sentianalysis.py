@@ -3,9 +3,10 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output, classify_score
+from sentiutil import output
 from sentigraph import plotting, plotting_separated, faceting
-from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, SenticNet, SOCAL, WDAL
+from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, \
+        SenticNet, SOCAL, WDAL
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
@@ -117,7 +118,7 @@ class SentimentAnalyzer():
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
 
             filter : coeff for filtering of the words that are not relevant, higher it is, less 
-            words are taken into account when scoring the corpus. By default set to 0.0, best at 0.1.
+            words are taken into account when scoring the corpus. By default set to 0.0.
             logging : log analyzed sentences to stdout, by default set to True
         """
         scores = []
@@ -143,16 +144,22 @@ class SentimentAnalyzer():
         """
             write the percentage of correct guesses within the corpus per dictionary
         """
-        print("\nPercentage of correct guesses:")
+        print("\nScoring percentages:")
+        print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
             i = 0
             plus = 0
+            unk = 0
             for verdict in dict.verdicts:
                 if verdict == self.correct[i]:
                     plus += 1
+                else:
+                    try:
+                        verdict+=1
+                    except:
+                        unk+=1
                 i += 1
-            print(dict.name,end=" ")
-            print(plus * 1.0 / i)
+            print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,plus * 1.0 / i, unk * 1.0 / i))
 
     def graph(self,separate=False,comp=True,pos=False,neg=False):
         """
@@ -164,13 +171,13 @@ class SentimentAnalyzer():
             neg : draw negative scores graph (default False)
         """
         if(comp):
-            draw_filtered(self.corpus,self.dicts,'compound',separate)
+            draw(self.corpus,self.dicts,'compound',separate)
         
         if(pos):
-            draw_filtered(self.corpus,self.dicts,'positive',separate)
+            draw(self.corpus,self.dicts,'positive',separate)
 
         if(neg):
-            draw_filtered(self.corpus,self.dicts,'negative',separate)
+            draw(self.corpus,self.dicts,'negative',separate)
 
     def radarChart(self,index):
         """
@@ -197,7 +204,8 @@ class SentimentAnalyzer():
         self.dicts = []
         self.limit = limit
 
-def draw_filtered(corpus,dicts,param,separate=False):
+def draw(corpus,dicts,param,separate=False):
+    """draws values from the dictionaries"""
     indexes = [x for x in range(len(corpus))]
     scores = []
     for dict in dicts:
@@ -212,7 +220,7 @@ def draw_filtered(corpus,dicts,param,separate=False):
         plotting(param,indexes,cols,scores)
 
 def norm_score(score,pos,neg,neu):
-    """normalizes the score converts; pos,neu,neg to 1,0,-1 set"""
+    """normalizes the scoring system; converts pos,neu,neg to [1,0,-1] set"""
     if score == pos:
         return 1
     elif score == neg:

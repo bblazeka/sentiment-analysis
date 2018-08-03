@@ -2,16 +2,16 @@ from sentianalysis import SentimentAnalyzer
 
 def main():
 
-    sentianalyzer = SentimentAnalyzer(1000)
+    sentianalyzer = SentimentAnalyzer(100)
 
     #sentianalyzer.txt_load('data/corpus/other/movie_comments.txt',1,0,neg=0)
-    sentianalyzer.csv_load('data/corpus/test.csv',1,0)
+    #sentianalyzer.csv_load('data/corpus/test.csv',1,0)
     #sentianalyzer.csv_load('data/corpus/twitter/1600000.processed.noemoticon.csv',5,0,4,0)
-    #sentianalyzer.csv_load('data/corpus/imdb/neg.csv',1,0,pos=4,neg=0,neu=2)
+    sentianalyzer.csv_load('data/corpus/imdb/neg.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.csv_load('data/corpus/imdb/pos.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
     sentianalyzer.set_dict(True)
-    sentianalyzer.score_corpus(logging=True,filter=0.08)
+    sentianalyzer.score_corpus(logging=True)
     sentianalyzer.efficiency()
 
     #sentianalyzer.graph(separate=True)
