@@ -10,13 +10,13 @@ def main():
     #sentianalyzer.csv_load('data/corpus/imdb/neg.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.csv_load('data/corpus/imdb/pos.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
-    sentianalyzer.set_dict()
-    sentianalyzer.score_corpus(logging=True)
+    sentianalyzer.set_dict(True)
+    sentianalyzer.score_corpus(logging=True,filter=0.08)
     sentianalyzer.efficiency()
 
-    sentianalyzer.graph(separate=True)
-    sentianalyzer.graph()
-    sentianalyzer.radarChart(2)
+    #sentianalyzer.graph(separate=True)
+    #sentianalyzer.graph()
+    #sentianalyzer.radarChart(2)
 
 if __name__ == '__main__':
     main()

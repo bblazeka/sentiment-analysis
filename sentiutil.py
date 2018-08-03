@@ -25,7 +25,7 @@ def output(name,verdict,value):
         elif(verdict<0):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"negative",value))
         else:
-            print("{0:<15s} {1:<10s}".format(name,"unknown"))
+            print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"neutral",value))
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
 

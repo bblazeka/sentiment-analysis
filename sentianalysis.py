@@ -3,7 +3,7 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
-from sentiutil import output, classify_score, evalPercent
+from sentiutil import output, classify_score
 from sentigraph import plotting, plotting_separated, faceting
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, SenticNet, SOCAL, WDAL
 import pandas as pd
@@ -17,6 +17,11 @@ class SentimentAnalyzer():
     correct = []
     dicts = []
     limit = 5000
+
+    def process_line(self,row,input,happs,pos,neg,neu):
+        self.corpus.append(row[input])
+        if happs != -1:
+            self.correct.append(norm_score(int(row[happs]),pos, neg, neu))
 
     def file_load(self,file_path,column=-1,happs=-1):
         """loads data from a file made from only sentences"""
@@ -41,9 +46,7 @@ class SentimentAnalyzer():
             for row in reader:
                 if i > self.limit:
                     break
-                self.corpus.append(row[column])
-                if happs != -1:
-                    self.correct.append(norm_score(int(row[happs]),pos, neg, neu))
+                self.process_line(row,column,happs,pos,neg,neu)
                 i+=1
 
     def txt_load(self,file_path,column,happs=-1,separator="\t", pos=1, neg=-1, neu=0):
@@ -65,9 +68,7 @@ class SentimentAnalyzer():
             if(i>self.limit):
                 break
             line = line.split(separator)
-            self.corpus.append(line[column])
-            if happs != -1:
-                self.correct.append(norm_score(int(line[happs]),pos,neg,neu))
+            self.process_line(line,column,happs,pos,neg,neu)
             i+=1
 
     def db_load(self,db_path,table,column=0):
@@ -92,36 +93,31 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":    
                 self.corpus.append(text)
     
-    def set_dict(self,vader=True,labmt=True,s140=True,hsent=True,swn=True,snet=True,socal=True,wdal=True):
+    def set_dict(self,default, dictslist=None):
         """
-            all dictionaries are set to be used, in case user sets the param to None,
-            dictionary is disabled. User passes the path as a parameter, otherwise it will
-            be loaded from the default path: data/{algorithm}/{filename}.txt
+            if the parameter default is set to True, all dictionaries will be loaded from
+            the default path: data/{algorithm}/{filename}.txt
+            Otherwise, supply a list of dictionaries
         """
         self.dicts = []
-        if vader != None:
-            self.dicts.append(Vader(vader))
-        if labmt != None:
-            self.dicts.append(LabMT(labmt))
-        if s140 != None:
-            self.dicts.append(Sent140Lex(s140))
-        if hsent != None:
-            self.dicts.append(HashtagSent(hsent))
-        if swn != None:
-            self.dicts.append(SentiWordNet(swn))
-        if snet != None:
-            self.dicts.append(SenticNet(snet))
-        if socal != None:
-            self.dicts.append(SOCAL(socal))
-        if wdal != None:
-            self.dicts.append(WDAL(wdal))
+        if default:
+            self.dicts.append(Vader())
+            self.dicts.append(LabMT())
+            self.dicts.append(Sent140Lex())
+            self.dicts.append(HashtagSent())
+            self.dicts.append(SentiWordNet())
+            self.dicts.append(SenticNet())
+            self.dicts.append(SOCAL())
+            self.dicts.append(WDAL())
+        else:
+            self.dicts = dictslist
 
     def score_corpus(self,filter=0.0,logging=True):
         """
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
 
             filter : coeff for filtering of the words that are not relevant, higher it is, less 
-            words are taken into account when scoring the corpus. By default set to 0.0,
+            words are taken into account when scoring the corpus. By default set to 0.0, best at 0.1.
             logging : log analyzed sentences to stdout, by default set to True
         """
         scores = []
@@ -133,9 +129,10 @@ class SentimentAnalyzer():
                 print(entry)
                 print("\"\"\"\n")
             for dict in self.dicts:
-                score = dict.score(entry,filter)
+                stopVal = filter * (dict.max - dict.center)
+                score = dict.score(entry,stopVal)
                 scores.append(score)
-                verdict = dict.judge(score['compound'])
+                verdict = dict.judge(score['compound'],filter)
                 if logging:
                     print(score)
                     output(dict.name,verdict,score['compound'])

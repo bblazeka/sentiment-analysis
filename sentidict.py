@@ -4,7 +4,7 @@
 import codecs
 from os.path import isfile,abspath,isdir,join
 from nltk.corpus import stopwords
-from math import fabs
+from math import fabs,isnan
 from sentiutil import dict_convert, output
 import sys
 # handle both pythons
@@ -57,7 +57,6 @@ class BaseDict():
         positive = 0.0
         negative = 0.0
         neutral = 0
-        stopVal = stopVal * (self.max - self.center)
         for word,count in word_dict.items():
             # ignore stop words
             stops = set(stopwords.words("english"))
@@ -81,7 +80,11 @@ class BaseDict():
             comp = totalscore / totalcount
             compound = self.normalize(comp,self.max,self.min)
         except:
-            compound = 0.0
+            if(neutral > 0):
+                compound = 0.0
+            else:
+                # did not recognize any of the words
+                compound = self.unknown
         negative = fabs(negative)
         total = neutral + negative + positive
         if total == 0:
@@ -94,19 +97,19 @@ class BaseDict():
              "positive": round(pos, 3),
              "compound": round(compound, 4)}
 
-    def judge(self,value):
+    def judge(self,value,stopVal=0.0):
         verdict = 0
         try:
             if(value > self.norm_threshold):
                 verdict = 1
-            elif(value == self.unknown):
-                verdict =  ''
-            elif(value == self.norm_threshold):
+            elif(value == self.norm_threshold or abs(value-self.norm_threshold)<=stopVal):
                 verdict = 0
+            elif(isnan(value)):
+                verdict = ''
             else:
                 verdict = -1
         except:
-            verdict = 0
+            verdict = ''
         self.verdicts.append(verdict)
         return verdict
 
