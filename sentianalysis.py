@@ -144,6 +144,9 @@ class SentimentAnalyzer():
         """
             write the percentage of correct guesses within the corpus per dictionary
         """
+        if len(self.correct) <= 0:
+            print("\nNo set of correct scores given so efficiency can't be calculated.")
+            return
         print("\nScoring percentages:")
         print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
