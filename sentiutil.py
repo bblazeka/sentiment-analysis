@@ -25,12 +25,12 @@ def output(name,verdict,value):
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
 
-def joinFiles():
-    folder = os.getcwd()+"/data/testing/aclImdb/test/pos"
+def joinFiles(file_one_path,file_two_path):
+    folder = os.getcwd()+file_one_path
     for filename in os.listdir(folder):
         print("4", end=",")
         print(open(folder+"/"+filename).read())
-    folder = os.getcwd()+"/data/testing/aclImdb/train/pos"
+    folder = os.getcwd()+file_two_path
     for filename in os.listdir(folder):
         print("4", end=",")
         print(open(folder+"/"+filename).read())

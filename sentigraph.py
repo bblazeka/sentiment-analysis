@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import string
 import sqlite3
 import os
@@ -89,3 +89,44 @@ def make_spider(df, row, title, color):
     
     # Add a title
     plt.title(title, size=11, color=color, y=1.1)
+
+def bar_compare(x_axis,list1,list2):
+    # data to plot
+    n_groups = len(x_axis)
+ 
+    # create plot
+    _, _ = plt.subplots()
+    index = np.arange(n_groups)
+    bar_width = 0.35
+    opacity = 0.8
+ 
+    _ = plt.bar(index, list1, bar_width,
+                     alpha=opacity,
+                     color='g',
+                     label='Correct')
+ 
+    _ = plt.bar(index + bar_width, list2, bar_width,
+                     alpha=opacity,
+                     color='b',
+                     label='Solved')
+ 
+    plt.xlabel('Dictionary')
+    plt.ylabel('Count')
+    plt.title('Effectiveness')
+    plt.xticks(index + bar_width, x_axis)
+    plt.legend()
+
+    plt.show()
+
+def draw_pies(names,labels,verdicts):
+    """
+        plots in order of labels pie charts for every dictionary in the same window.
+    """
+    plt.figure(num='Pie charts',figsize=(x, y), dpi=my_dpi)
+    plt.subplots_adjust(left=left,right=right)
+
+    for i in range(len(verdicts)):
+        plt.subplot(2,4,i+1)
+        plt.pie(verdicts[i],labels=labels, startangle=90)
+        plt.title(names[i])
+    plt.show()

@@ -12,8 +12,10 @@ def main():
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
     sentianalyzer.set_dict(True)
     sentianalyzer.score_corpus(logging=True)
-    sentianalyzer.efficiency()
+    sentianalyzer.efficiency(graph=False)
+    #sentianalyzer.dict_sizes()
 
+    #sentianalyzer.graph_pie()
     #sentianalyzer.graph(separate=True)
     #sentianalyzer.graph()
     #sentianalyzer.radarChart(2)

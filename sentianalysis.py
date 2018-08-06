@@ -4,7 +4,7 @@
 import sqlite3
 from os.path import isfile,abspath,isdir,join
 from sentiutil import output
-from sentigraph import plotting, plotting_separated, faceting
+from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, \
         SenticNet, SOCAL, WDAL
 import pandas as pd
@@ -140,13 +140,19 @@ class SentimentAnalyzer():
             ind+=1
         return scores
 
-    def efficiency(self):
+    def efficiency(self,graph=False):
         """
             write the percentage of correct guesses within the corpus per dictionary
+
+            graph : should a bar chart be drawn containing percentages of correct
+            and evaluated sentences
         """
         if len(self.correct) <= 0:
             print("\nNo set of correct scores given so efficiency can't be calculated.")
             return
+        correct = []
+        solved = []
+        names = []
         print("\nScoring percentages:")
         print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
@@ -162,7 +168,21 @@ class SentimentAnalyzer():
                     except:
                         unk+=1
                 i += 1
-            print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,plus * 1.0 / i, unk * 1.0 / i))
+            perc_plus = plus * 1.0 / i
+            perc_unk = unk * 1.0 / i
+            correct.append(perc_plus)
+            solved.append(1-perc_unk)
+            names.append(dict.name)
+            print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,perc_plus, perc_unk))
+
+        if graph:
+            bar_compare(names,correct,solved)
+
+    def dict_sizes(self):
+        """prints the number of entries in the loaded dictionaries"""
+        print("\nDictionary sizes:")
+        for dict in self.dicts:
+            print("{0:<15s} {1:8.0f}".format(dict.name,len(dict.my_dict)))
 
     def graph(self,separate=False,comp=True,pos=False,neg=False):
         """
@@ -202,6 +222,34 @@ class SentimentAnalyzer():
             
         faceting(title,df)
 
+    def graph_pie(self):
+        """
+            draws a graph of all verdicts, per every dictionary, divided to positive, neutral,
+            negative and unknown
+        """
+        verdicts = []
+        names = []
+        for dict in self.dicts:
+            names.append(dict.name)
+            pos = 0
+            neu = 0
+            neg = 0
+            unk = 0
+            for x in dict.verdicts:
+                try:
+                    if x == 1:
+                        pos += 1
+                    elif x == 0:
+                        neu += 0
+                    elif x == -1:
+                        neg += 1
+                    else:
+                        unk += 1
+                except:
+                    unk += 1
+            verdicts.append([pos,neu,neg,unk])
+        labels = 'pos','neu','neg','unk'
+        draw_pies(names,labels,verdicts)
 
     def __init__(self,limit=5000):
         self.dicts = []
