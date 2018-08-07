@@ -25,7 +25,7 @@ class BaseDict():
     min = 0.0
     center = 0.0
     name = ""
-    unknown = float('nan')
+    unknown = 0.0
     scores = []
     verdicts = []
     my_dict = dict()

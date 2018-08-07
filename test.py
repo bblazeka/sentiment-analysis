@@ -11,11 +11,12 @@ def main():
     #sentianalyzer.csv_load('data/corpus/imdb/pos.csv',1,0,pos=4,neg=0,neu=2)
     #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
     sentianalyzer.set_dict(True)
-    sentianalyzer.score_corpus(logging=True)
+    sentianalyzer.score_corpus(logging=True, filter=0.1)
     sentianalyzer.efficiency(graph=False)
     #sentianalyzer.dict_sizes()
 
     #sentianalyzer.graph_pie()
+    #sentianalyzer.graph_pearson()
     #sentianalyzer.graph(separate=True)
     #sentianalyzer.graph()
     #sentianalyzer.radarChart(2)

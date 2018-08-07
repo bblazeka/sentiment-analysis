@@ -6,6 +6,7 @@ import re
 from os.path import isfile,abspath,isdir,join
 from collections import defaultdict
 from matplotlib import pyplot as plt
+from matplotlib import cm as cm
 
 my_dpi = 80
 left = 0.05
@@ -14,7 +15,7 @@ x = 1000
 y = 800
 
 def plotting(title,indexes,cols,scores):
-    plt.figure(num=title, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
+    plt.figure(num=title, figsize=(10, 8), dpi=my_dpi, facecolor='w', edgecolor='k')
     plt.subplots_adjust(top=0.8)
     for i in range(len(cols)):
         plt.plot(indexes,scores[i], label=cols[i])
@@ -129,4 +130,22 @@ def draw_pies(names,labels,verdicts):
         plt.subplot(2,4,i+1)
         plt.pie(verdicts[i],labels=labels, startangle=90)
         plt.title(names[i])
+    plt.show()
+
+def corr_matrix(data_array,labels):
+    """plot the pearson correlation matrix with given labels"""
+    print(labels)
+    print(data_array)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xticks(np.arange(len(labels)))
+    ax1.set_yticks(np.arange(len(labels)))
+    ax1.set_xticklabels(labels,fontsize=6)
+    ax1.set_yticklabels(labels,fontsize=6)
+    ax1.grid(True)
+    cmap = cm.get_cmap('jet', 30)
+    cax = ax1.imshow(data_array, interpolation="nearest", cmap=cmap)
+    plt.title('Pearson correlation matrix')
+    # Add colorbar, make sure to specify tick locations to match desired ticklabels
+    fig.colorbar(cax, ticks=[.1,.2,.3,.4,.5,.6,.7,.8,.9,1])
     plt.show()

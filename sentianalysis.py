@@ -3,8 +3,9 @@
 """
 import sqlite3
 from os.path import isfile,abspath,isdir,join
+from scipy.stats.stats import pearsonr
 from sentiutil import output
-from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies
+from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies, corr_matrix
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, \
         SenticNet, SOCAL, WDAL
 import pandas as pd
@@ -240,7 +241,7 @@ class SentimentAnalyzer():
                     if x == 1:
                         pos += 1
                     elif x == 0:
-                        neu += 0
+                        neu += 1
                     elif x == -1:
                         neg += 1
                     else:
@@ -250,6 +251,20 @@ class SentimentAnalyzer():
             verdicts.append([pos,neu,neg,unk])
         labels = 'pos','neu','neg','unk'
         draw_pies(names,labels,verdicts)
+
+    def graph_pearson(self,category="compound"):
+        """draws a pearson correlation graph between dictionary ratings"""
+        corrs = []
+        labels = []
+        for dict in self.dicts:
+            labels.append(dict.name)
+        for i in range(len(self.dicts)):
+            corrs.append([])
+            for j in range(len(self.dicts)):
+                values = [x[category] for x in self.dicts[i].scores]
+                other = [x[category] for x in self.dicts[j].scores]
+                corrs[i].append(pearsonr(values,other)[0])
+        corr_matrix(corrs,labels)
 
     def __init__(self,limit=5000):
         self.dicts = []
