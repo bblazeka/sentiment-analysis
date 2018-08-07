@@ -7,7 +7,7 @@ from scipy.stats.stats import pearsonr
 from sentiutil import output
 from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies, corr_matrix
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, \
-        SenticNet, SOCAL, WDAL
+        SenticNet, SOCAL, WDAL, DictOrigin
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
@@ -154,11 +154,15 @@ class SentimentAnalyzer():
         correct = []
         solved = []
         names = []
+        auto_plus = 0
+        auto_unk = 0
+        man_plus = 0
+        man_unk = 0
         print("\nScoring percentages:")
         print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
-            i = 0
             plus = 0
+            i = 0
             unk = 0
             for verdict in dict.verdicts:
                 if verdict == self.correct[i]:
@@ -169,12 +173,23 @@ class SentimentAnalyzer():
                     except:
                         unk+=1
                 i += 1
+            if dict.origin == DictOrigin.AUTO:
+                auto_plus += plus
+                auto_unk += unk
+            else:
+                man_plus += plus
+                man_unk += unk
             perc_plus = plus * 1.0 / i
             perc_unk = unk * 1.0 / i
             correct.append(perc_plus)
             solved.append(1-perc_unk)
             names.append(dict.name)
             print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,perc_plus, perc_unk))
+
+        size = 4 * i
+        print("\nPercentages by origin:")
+        print("{0:<15s} {1:8.4f} {2:8.4f}".format("Auto",auto_plus * 1.0 / size, auto_unk * 1.0 / size))
+        print("{0:<15s} {1:8.4f} {2:8.4f}".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
 
         if graph:
             bar_compare(names,correct,solved)

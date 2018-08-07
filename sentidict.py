@@ -4,6 +4,7 @@
 import codecs
 from os.path import isfile,abspath,isdir,join
 from nltk.corpus import stopwords
+from enum import Enum
 from math import fabs,isnan
 from sentiutil import dict_convert, output
 import sys
@@ -17,6 +18,10 @@ else:
     def u(x):
         """Python 2/3 agnostic unicode function"""
         return x
+
+class DictOrigin(Enum):
+    AUTO = 1,
+    MANUAL = 2
 
 class BaseDict():
 
@@ -121,6 +126,7 @@ class HashtagSent(BaseDict):
     # Citation required!!
     name = "HashtagSent"
     path = "data/hashtagsent/unigrams-pmilexicon.txt"
+    origin = DictOrigin.AUTO
     center = 0.0
     min = -6.9
     max = 7.5
@@ -154,6 +160,7 @@ class Sent140Lex(BaseDict):
     # Citation required!!
     name = "Sent140Lex"
     path = "data/sent140lex/unigrams-pmilexicon.txt"
+    origin = DictOrigin.MANUAL
     center = 0.0
     max = 5.0
     min = -5.0
@@ -186,6 +193,7 @@ class Sent140Lex(BaseDict):
 class Vader(BaseDict):
     name = "VADER"
     path = "data/vader/unigrams-lexicon.txt"
+    origin = DictOrigin.MANUAL
     min = -3.9
     max = 3.4
     center = 0.0
@@ -218,6 +226,7 @@ class Vader(BaseDict):
 class LabMT(BaseDict):
     name = "LabMT"
     path = "data/labmt/labmt2.txt"
+    origin = DictOrigin.MANUAL
     center = 5.0
     max = 8.5
     min = 1.3
@@ -254,6 +263,7 @@ class LabMT(BaseDict):
 class SentiWordNet(BaseDict):
     name = "SentiWordNet"
     path = "data/sentiwordnet/SentiWordNet_3.0.0_20130122.txt"
+    origin = DictOrigin.AUTO
     center = 0.0
     max = 1.0
     min = -1.0
@@ -295,6 +305,7 @@ class SentiWordNet(BaseDict):
 class SenticNet(BaseDict):
     name = "SenticNet"
     path = "data/senticnet/senticnet3.json"
+    origin = DictOrigin.AUTO
     center = 0.0
     max = 1.0
     min = -1.0
@@ -323,6 +334,7 @@ class SenticNet(BaseDict):
 class SOCAL(BaseDict):
     name = "SOCAL"
     path = "data/socal/all_dictionaries-utf8.txt"
+    origin = DictOrigin.MANUAL
     min = -30.2
     center = 0.0
     max = 30.7
@@ -355,6 +367,7 @@ class SOCAL(BaseDict):
 class WDAL(BaseDict):
     name = "WDAL"
     path = "data/wdal/words.txt"
+    origin = DictOrigin.MANUAL
     min = 0
     center = 1.5
     max = 3.0
