@@ -103,12 +103,12 @@ class SentimentAnalyzer():
         """
         self.dicts = []
         if default:
-            self.dicts.append(Vader())
-            self.dicts.append(LabMT())
             self.dicts.append(Sent140Lex())
             self.dicts.append(HashtagSent())
             self.dicts.append(SentiWordNet())
             self.dicts.append(SenticNet())
+            self.dicts.append(Vader())
+            self.dicts.append(LabMT())
             self.dicts.append(SOCAL())
             self.dicts.append(WDAL())
         else:
@@ -134,7 +134,7 @@ class SentimentAnalyzer():
                 stopVal = filter * (dict.max - dict.center)
                 score = dict.score(entry,stopVal)
                 scores.append(score)
-                verdict = dict.judge(score['compound'],filter)
+                verdict = dict.judge(score,filter)
                 if logging:
                     print(score)
                     output(dict.name,verdict,score['compound'])
@@ -167,11 +167,8 @@ class SentimentAnalyzer():
             for verdict in dict.verdicts:
                 if verdict == self.correct[i]:
                     plus += 1
-                else:
-                    try:
-                        verdict+=1
-                    except:
-                        unk+=1
+                elif verdict == -2:
+                    unk+=1
                 i += 1
             if dict.origin == DictOrigin.AUTO:
                 auto_plus += plus
@@ -220,7 +217,7 @@ class SentimentAnalyzer():
 
     def radarChart(self,index):
         """
-            for an entered sentence, display radar charts for all dictionaries are shown
+            for an entered sentence, display radar chart; shown for all dictionaries
         
             index : index of a sentence in a corpus
         """

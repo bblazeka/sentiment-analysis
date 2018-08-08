@@ -9,23 +9,25 @@ from matplotlib import pyplot as plt
 from matplotlib import cm as cm
 
 my_dpi = 80
+default_folder = "output/"
 left = 0.05
 right = 0.95
 x = 1000
 y = 800
 
 def plotting(title,indexes,cols,scores):
-    plt.figure(num=title, figsize=(10, 8), dpi=my_dpi, facecolor='w', edgecolor='k')
+    plt.figure(num=title, figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi, facecolor='w', edgecolor='k')
     plt.subplots_adjust(top=0.8)
     for i in range(len(cols)):
         plt.plot(indexes,scores[i], label=cols[i])
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
            ncol=2, mode="expand", borderaxespad=0.)
-    plt.show()
+    plt.savefig(default_folder+title+"_joined.png")
+    plt.clf()
 
 def plotting_separated(title,dicts,df):
     """plots on separate graph in the same window"""
-    plt.figure(num='Separate graphs of lexicons',figsize=(x, y), dpi=my_dpi)
+    plt.figure(num='Separate graphs of lexicons',figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi)
     plt.suptitle(title)
     plt.subplots_adjust(left=left,right=right)
     indexes = [x for x in range(len(df.index))] 
@@ -38,12 +40,13 @@ def plotting_separated(title,dicts,df):
         plt.ylim(-1,1)
         plt.title(dicts[i])
 
-    plt.show()
+    plt.savefig(default_folder+title+"_separated.png")
+    plt.clf()
 
 def faceting(sentence,df):
     # ------- PART 2: Apply to all individuals
     # initialize the figure
-    plt.figure(num='Sentence spider analysis',figsize=(x, y), dpi=my_dpi)
+    plt.figure(num='Sentence spider analysis',figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi)
     plt.suptitle(sentence)
     plt.subplots_adjust(left=left,right=right)
 
@@ -54,7 +57,8 @@ def faceting(sentence,df):
     for row in range(len(df.index)):
         make_spider(df, row=row, title=df['group'][row], color=my_palette(row))
 
-    plt.show()
+    plt.savefig(default_folder+"spider.png")
+    plt.clf()
 
 def make_spider(df, row, title, color):
     
@@ -117,25 +121,26 @@ def bar_compare(x_axis,list1,list2):
     plt.xticks(index + bar_width, x_axis)
     plt.legend()
 
-    plt.show()
+    plt.savefig(default_folder+"barplot.png")
+    plt.clf()
 
 def draw_pies(names,labels,verdicts):
     """
         plots in order of labels pie charts for every dictionary in the same window.
     """
-    plt.figure(num='Pie charts',figsize=(x, y), dpi=my_dpi)
+    plt.figure(num='Pie charts',figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi)
     plt.subplots_adjust(left=left,right=right)
 
     for i in range(len(verdicts)):
         plt.subplot(2,4,i+1)
         plt.pie(verdicts[i],labels=labels, startangle=90)
         plt.title(names[i])
-    plt.show()
+
+    plt.savefig(default_folder+'piecharts.png')
+    plt.clf()
 
 def corr_matrix(data_array,labels):
     """plot the pearson correlation matrix with given labels"""
-    print(labels)
-    print(data_array)
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.set_xticks(np.arange(len(labels)))
@@ -148,4 +153,5 @@ def corr_matrix(data_array,labels):
     plt.title('Pearson correlation matrix')
     # Add colorbar, make sure to specify tick locations to match desired ticklabels
     fig.colorbar(cax, ticks=[.1,.2,.3,.4,.5,.6,.7,.8,.9,1])
-    plt.show()
+    plt.savefig(default_folder+"pearson.png")
+    plt.clf()

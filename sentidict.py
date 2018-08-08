@@ -103,19 +103,21 @@ class BaseDict():
              "positive": round(pos, 3),
              "compound": round(compound, 4)}
 
-    def judge(self,value,stopVal=0.0):
+    def judge(self,score,stopVal=0.0):
         verdict = 0
         try:
-            if(value > self.norm_threshold):
-                verdict = 1
-            elif(value == self.norm_threshold or abs(value-self.norm_threshold)<=stopVal):
-                verdict = 0
-            elif(isnan(value)):
-                verdict = ''
+            if abs(score['compound']-self.norm_threshold)>stopVal:
+                if score['compound'] > self.norm_threshold:
+                    verdict = 1
+                else:
+                    verdict = -1
             else:
-                verdict = -1
+                if score['compound'] == 0 and score['neutral'] == 0 and score['positive'] == 0:
+                    verdict = -2
+                else:
+                    verdict = 0
         except:
-            verdict = ''
+            verdict = -2
         self.verdicts.append(verdict)
         return verdict
 
@@ -160,7 +162,7 @@ class Sent140Lex(BaseDict):
     # Citation required!!
     name = "Sent140Lex"
     path = "data/sent140lex/unigrams-pmilexicon.txt"
-    origin = DictOrigin.MANUAL
+    origin = DictOrigin.AUTO
     center = 0.0
     max = 5.0
     min = -5.0

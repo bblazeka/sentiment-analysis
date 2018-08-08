@@ -138,8 +138,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Project specific folder containing data
+# Project specific folder containing data or outputs
 data/
+output/
 
 # Project specific output files
 *.in
