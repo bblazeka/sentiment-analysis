@@ -62,6 +62,7 @@ class BaseDict():
         positive = 0.0
         negative = 0.0
         neutral = 0
+        recognized = 0
         for word,count in word_dict.items():
             # ignore stop words
             stops = set(stopwords.words("english"))
@@ -71,6 +72,7 @@ class BaseDict():
             if word in lex:
                 happ = lex[word][idx]
                 if abs(happ-self.center) >= stopVal:
+                    recognized += 1
                     # for now, pos, neu and neg are calculated only quantitative
                     if happ > self.center:
                         positive += 1
@@ -101,7 +103,8 @@ class BaseDict():
         return {"negative": round(neg, 3),
              "neutral": round(neu, 3),
              "positive": round(pos, 3),
-             "compound": round(compound, 4)}
+             "compound": round(compound, 4),
+             "recognized": recognized}
 
     def judge(self,score,stopVal=0.0):
         verdict = 0

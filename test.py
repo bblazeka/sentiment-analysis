@@ -2,7 +2,7 @@ from sentianalysis import SentimentAnalyzer
 
 def main():
 
-    sentianalyzer = SentimentAnalyzer(2000)
+    sentianalyzer = SentimentAnalyzer(100)
 
     #sentianalyzer.txt_load('data/corpus/other/movie_comments.txt',1,0,neg=0)
     #sentianalyzer.csv_load('data/corpus/test.csv',1,0)
@@ -13,7 +13,8 @@ def main():
     sentianalyzer.set_dict(True)
     sentianalyzer.score_corpus(logging=True, filter=0.0)
     sentianalyzer.efficiency(graph=True)
-    sentianalyzer.dict_sizes()
+    sentianalyzer.words_recognized(graph=True)
+    #sentianalyzer.dict_sizes()
 
     sentianalyzer.graph_pie()
     sentianalyzer.graph_pearson()

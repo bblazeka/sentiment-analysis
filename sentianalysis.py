@@ -197,6 +197,17 @@ class SentimentAnalyzer():
         for dict in self.dicts:
             print("{0:<15s} {1:8.0f}".format(dict.name,len(dict.my_dict)))
 
+    def words_recognized(self,graph=False):
+        """Information about a number of words recongized per input"""
+        print("\nWords recognized per dictionary:")
+        for dict in self.dicts:
+            recongized = 0
+            for score in dict.scores:
+                recongized += score['recognized']
+            print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
+        if(graph):
+            draw(self.corpus,self.dicts,'recognized',False)
+
     def graph(self,separate=False,comp=True,pos=False,neg=False):
         """
             graph drawing method
