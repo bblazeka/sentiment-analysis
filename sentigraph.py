@@ -5,6 +5,8 @@ import os
 import re
 from os.path import isfile,abspath,isdir,join
 from collections import defaultdict
+import matplotlib
+matplotlib.use("Pdf")
 from matplotlib import pyplot as plt
 from matplotlib import cm as cm
 

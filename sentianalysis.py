@@ -114,7 +114,7 @@ class SentimentAnalyzer():
         else:
             self.dicts = dictslist
 
-    def score_corpus(self,filter=0.0,logging=True):
+    def score_corpus(self,filter=0.0,log=False):
         """
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
 
@@ -125,7 +125,7 @@ class SentimentAnalyzer():
         scores = []
         ind = 0
         for entry in [x.rstrip() for x in self.corpus]:
-            if logging:
+            if log:
                 print("\n\"\"\"")
                 print("id "+str(ind), end=": ")
                 print(entry)
@@ -135,13 +135,13 @@ class SentimentAnalyzer():
                 score = dict.score(entry,stopVal)
                 scores.append(score)
                 verdict = dict.judge(score,filter)
-                if logging:
+                if log:
                     print(score)
                     output(dict.name,verdict,score['compound'])
             ind+=1
         return scores
 
-    def efficiency(self,graph=False):
+    def efficiency(self,log=True,graph=True):
         """
             write the percentage of correct guesses within the corpus per dictionary
 
@@ -158,8 +158,9 @@ class SentimentAnalyzer():
         auto_unk = 0
         man_plus = 0
         man_unk = 0
-        print("\nScoring percentages:")
-        print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
+        if log:
+            print("\nScoring percentages:")
+            print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
             plus = 0
             i = 0
@@ -181,12 +182,14 @@ class SentimentAnalyzer():
             correct.append(perc_plus)
             solved.append(1-perc_unk)
             names.append(dict.name)
-            print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,perc_plus, perc_unk))
+            if log:
+                print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,perc_plus, perc_unk))
 
         size = 4 * i
-        print("\nPercentages by origin:")
-        print("{0:<15s} {1:8.4f} {2:8.4f}".format("Auto",auto_plus * 1.0 / size, auto_unk * 1.0 / size))
-        print("{0:<15s} {1:8.4f} {2:8.4f}".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
+        if log:
+            print("\nPercentages by origin:")
+            print("{0:<15s} {1:8.4f} {2:8.4f}".format("Auto",auto_plus * 1.0 / size, auto_unk * 1.0 / size))
+            print("{0:<15s} {1:8.4f} {2:8.4f}".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
 
         if graph:
             bar_compare(names,correct,solved)
@@ -197,37 +200,73 @@ class SentimentAnalyzer():
         for dict in self.dicts:
             print("{0:<15s} {1:8.0f}".format(dict.name,len(dict.my_dict)))
 
-    def words_recognized(self,graph=False):
+    def words_recognized(self,log=False,graph=False):
         """Information about a number of words recongized per input"""
-        print("\nWords recognized per dictionary:")
-        for dict in self.dicts:
-            recongized = 0
-            for score in dict.scores:
-                recongized += score['recognized']
-            print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
-        if(graph):
+        if log:
+            print("\nWords recognized per dictionary:")
+            for dict in self.dicts:
+                recongized = 0
+                for score in dict.scores:
+                    recongized += score['recognized']
+                print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
+        if graph:
             draw(self.corpus,self.dicts,'recognized',False)
 
-    def graph(self,separate=False,comp=True,pos=False,neg=False):
-        """
-            graph drawing method
-            
-            separate : if true, graphs are separated, otherwise joined on one graph (default False),
-            comp : draw compound scores graph (default True),
-            pos : draw positive scores graph (default False),
-            neg : draw negative scores graph (default False)
-        """
-        if(comp):
-            draw(self.corpus,self.dicts,'compound',separate)
-        
-        if(pos):
-            draw(self.corpus,self.dicts,'positive',separate)
+    def summary(self,graph=False,log=False):
+        if log:
+            pass
 
-        if(neg):
-            draw(self.corpus,self.dicts,'negative',separate)
+        if graph:
+            """
+                draws a graph of all verdicts, per every dictionary, divided to positive, neutral,
+                negative and unknown
+            """
+            verdicts = []
+            names = []
+            for dict in self.dicts:
+                names.append(dict.name)
+                pos = 0
+                neu = 0
+                neg = 0
+                unk = 0
+                for x in dict.verdicts:
+                    try:
+                        if x == 1:
+                            pos += 1
+                        elif x == 0:
+                            neu += 1
+                        elif x == -1:
+                            neg += 1
+                        else:
+                            unk += 1
+                    except:
+                        unk += 1
+                verdicts.append([pos,neu,neg,unk])
+            labels = 'pos','neu','neg','unk'
+            draw_pies(names,labels,verdicts)
+            pass
 
-    def radarChart(self,index):
-        """
+    def comparison(self,category,graph=False,log=False):
+        if log:
+            pass
+
+        if graph:
+            """draws a pearson correlation graph between dictionary ratings"""
+            corrs = []
+            labels = []
+            for dict in self.dicts:
+                labels.append(dict.name)
+            for i in range(len(self.dicts)):
+                corrs.append([])
+                for j in range(len(self.dicts)):
+                    values = [x[category] for x in self.dicts[i].scores]
+                    other = [x[category] for x in self.dicts[j].scores]
+                    corrs[i].append(pearsonr(values,other)[0])
+            corr_matrix(corrs,labels)
+
+    def details(self,index):
+        """details about one entry. Loging to file or drawing radar charts
+
             for an entered sentence, display radar chart; shown for all dictionaries
         
             index : index of a sentence in a corpus
@@ -246,48 +285,23 @@ class SentimentAnalyzer():
             
         faceting(title,df)
 
-    def graph_pie(self):
+    def graph_scores(self,separate=False,comp=True,pos=False,neg=False):
         """
-            draws a graph of all verdicts, per every dictionary, divided to positive, neutral,
-            negative and unknown
+            graph drawing method
+            
+            separate : if true, graphs are separated, otherwise joined on one graph (default False),
+            comp : draw compound scores graph (default True),
+            pos : draw positive scores graph (default False),
+            neg : draw negative scores graph (default False)
         """
-        verdicts = []
-        names = []
-        for dict in self.dicts:
-            names.append(dict.name)
-            pos = 0
-            neu = 0
-            neg = 0
-            unk = 0
-            for x in dict.verdicts:
-                try:
-                    if x == 1:
-                        pos += 1
-                    elif x == 0:
-                        neu += 1
-                    elif x == -1:
-                        neg += 1
-                    else:
-                        unk += 1
-                except:
-                    unk += 1
-            verdicts.append([pos,neu,neg,unk])
-        labels = 'pos','neu','neg','unk'
-        draw_pies(names,labels,verdicts)
+        if(comp):
+            draw(self.corpus,self.dicts,'compound',separate)
+        
+        if(pos):
+            draw(self.corpus,self.dicts,'positive',separate)
 
-    def graph_pearson(self,category="compound"):
-        """draws a pearson correlation graph between dictionary ratings"""
-        corrs = []
-        labels = []
-        for dict in self.dicts:
-            labels.append(dict.name)
-        for i in range(len(self.dicts)):
-            corrs.append([])
-            for j in range(len(self.dicts)):
-                values = [x[category] for x in self.dicts[i].scores]
-                other = [x[category] for x in self.dicts[j].scores]
-                corrs[i].append(pearsonr(values,other)[0])
-        corr_matrix(corrs,labels)
+        if(neg):
+            draw(self.corpus,self.dicts,'negative',separate)
 
     def __init__(self,limit=5000):
         self.dicts = []
