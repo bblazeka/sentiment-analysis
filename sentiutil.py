@@ -6,9 +6,10 @@ from collections import defaultdict
 def dict_convert(sentence):
     """convert a sentence to a dictionary of word-count pairs"""
     counts = defaultdict(int)
-    for word in [x.lower() for x in sentence.split()]:
+    for word in [x.lower() for x in sentence.replace('<br />',' ').split()]:
         # to save (some) words at the end of a sentence from being ignored
         if len(word) > 5:
+            # remove interpunction signs
             word = re.sub('[!.,?<>]+', '', word)
         counts[word]+=1
     return counts
@@ -16,12 +17,14 @@ def dict_convert(sentence):
 def output(name,verdict,value):
     """Function that formats the output depending on the evaluation"""
     try:
-        if(verdict>0):
+        if(verdict == 1):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"positive",value))
-        elif(verdict<0):
+        elif(verdict == -1):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"negative",value))
-        else:
+        elif(verdict == 0):
             print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"neutral",value))
+        else:
+            print("{0:<15s} {1:<10s}".format(name,"unknown"))
     except:
         print("{0:<15s} {1:<10s}".format(name,"unknown"))
 

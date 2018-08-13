@@ -25,13 +25,27 @@ class SentimentAnalyzer():
         if happs != -1:
             self.correct.append(norm_score(int(row[happs]),pos, neg, neu))
 
-    def file_load(self,file_path,column=-1,happs=-1):
-        """loads data from a file made from only sentences"""
+    def file_load(self,file_path,happs=-1,pos=1,neg=-1,neu=0):
+        """
+            loads data from a file made only with entries in a format:
+            [number_rating],[entry]
+
+            This files are separated since there is no problem with avoiding multiple commas
+            since we know there is only one. This files are the easiest for rating.
+
+            happs : determines if ratings exists or is it only entries file
+        """
         f = open(file_path)
-        self.corpus = f.readlines()
+        lines = f.readlines()
+        i = 0
+        for line in lines:
+            if i > self.limit:
+                break
+            self.process_line(line.split(',',1),1,0,pos,neg,neu)
+            i+=1
         f.close()
 
-    def csv_load(self,file_path,column,happs=-1, pos=1, neg=-1, neu=0):
+    def csv_load(self,file_path,column,happs=-1,pos=1,neg=-1,neu=0):
         """
             loads data from csv file
 
@@ -192,7 +206,8 @@ class SentimentAnalyzer():
             print("{0:<15s} {1:8.4f} {2:8.4f}".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
 
         if graph:
-            bar_compare(names,correct,solved)
+            title = "Dictionary effectiveness coparison"
+            bar_compare(names,title,correct,solved)
 
     def dict_sizes(self):
         """prints the number of entries in the loaded dictionaries"""
@@ -203,14 +218,14 @@ class SentimentAnalyzer():
     def words_recognized(self,log=False,graph=False):
         """Information about a number of words recongized per input"""
         if log:
-            print("\nWords recognized per dictionary:")
+            print("\nWords recognized per input:")
             for dict in self.dicts:
                 recongized = 0
                 for score in dict.scores:
                     recongized += score['recognized']
                 print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
         if graph:
-            draw(self.corpus,self.dicts,'recognized',False)
+            draw(self.corpus,self.dicts,'recognized','Words recognized per input',False)
 
     def summary(self,graph=False,log=False):
         if log:
@@ -243,26 +258,44 @@ class SentimentAnalyzer():
                         unk += 1
                 verdicts.append([pos,neu,neg,unk])
             labels = 'pos','neu','neg','unk'
-            draw_pies(names,labels,verdicts)
-            pass
+            draw_pies(names,'Dispersion of verdicts between dictionaries',labels,verdicts)
 
     def comparison(self,category,graph=False,log=False):
-        if log:
-            pass
-
-        if graph:
-            """draws a pearson correlation graph between dictionary ratings"""
-            corrs = []
-            labels = []
-            for dict in self.dicts:
-                labels.append(dict.name)
+        """draws a correlation matrix between dictionary ratings"""
+        corrs = []
+        labels = []
+        for dict in self.dicts:
+            labels.append(dict.name)
+        if category == "verdicts":
+            for i in range(len(self.dicts)):
+                corrs.append([])
+                for j in range(len(self.dicts)):
+                    a = self.dicts[i].verdicts
+                    b = self.dicts[j].verdicts
+                    eq = 0
+                    for k in range(len(a)):
+                        if a[k] == b[k]:
+                            eq+=1
+                    corrs[i].append(eq * 1.0 / len(a))
+        else:
+            # pearson correlation
             for i in range(len(self.dicts)):
                 corrs.append([])
                 for j in range(len(self.dicts)):
                     values = [x[category] for x in self.dicts[i].scores]
                     other = [x[category] for x in self.dicts[j].scores]
                     corrs[i].append(pearsonr(values,other)[0])
-            corr_matrix(corrs,labels)
+
+        if log:
+            print("\nCorrelations between dictionaries:")
+            for i in range(len(corrs)):
+                name = self.dicts[i].name
+                for j in range(len(corrs[i])):
+                    other = self.dicts[j].name
+                    print("{0:<15s} {1:<15s} {2:8.4f}".format(name,other,float(corrs[i][j])))
+
+        if graph:
+            corr_matrix(corrs,labels,category)
 
     def details(self,index):
         """details about one entry. Loging to file or drawing radar charts
@@ -287,27 +320,28 @@ class SentimentAnalyzer():
 
     def graph_scores(self,separate=False,comp=True,pos=False,neg=False):
         """
-            graph drawing method
+            graph drawing method, drawing scores for each input by any graph
             
             separate : if true, graphs are separated, otherwise joined on one graph (default False),
             comp : draw compound scores graph (default True),
             pos : draw positive scores graph (default False),
             neg : draw negative scores graph (default False)
         """
+        header = "Scores for each input"
         if(comp):
-            draw(self.corpus,self.dicts,'compound',separate)
+            draw(self.corpus,self.dicts,'compound',header,separate)
         
         if(pos):
-            draw(self.corpus,self.dicts,'positive',separate)
+            draw(self.corpus,self.dicts,'positive',header,separate)
 
         if(neg):
-            draw(self.corpus,self.dicts,'negative',separate)
+            draw(self.corpus,self.dicts,'negative',header,separate)
 
     def __init__(self,limit=5000):
         self.dicts = []
         self.limit = limit
 
-def draw(corpus,dicts,param,separate=False):
+def draw(corpus,dicts,param,header,separate=False):
     """draws values from the dictionaries"""
     indexes = [x for x in range(len(corpus))]
     scores = []
@@ -318,9 +352,9 @@ def draw(corpus,dicts,param,separate=False):
         df = pd.DataFrame()
         for i in range(len(cols)):
             df.insert(i,cols[i],scores[i])
-        plotting_separated(param,cols,df)
+        plotting_separated(param,cols,df,header)
     else:
-        plotting(param,indexes,cols,scores)
+        plotting(param,indexes,cols,scores,header)
 
 def norm_score(score,pos,neg,neu):
     """normalizes the scoring system; converts pos,neu,neg to [1,0,-1] set"""
