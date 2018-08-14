@@ -1,6 +1,7 @@
 # inspired by:
 # https://github.com/andyreagan/labMT-simple/blob/master/labMTsimple/speedy.py
 
+import re
 import codecs
 from os.path import isfile,abspath,isdir,join
 from nltk.corpus import stopwords
@@ -373,8 +374,8 @@ class WDAL(BaseDict):
     name = "WDAL"
     path = "data/wdal/words.txt"
     origin = DictOrigin.MANUAL
-    min = 0
-    center = 1.5
+    min = 1.0
+    center = 2
     max = 3.0
 
     def load(self,path):
@@ -385,7 +386,8 @@ class WDAL(BaseDict):
         i = 0
         for line in f.readlines():
             a = line.rstrip().split(" ")
-            word = a[0]
+            # wdal dictionary has * in place of ' (ex. can*t)
+            word = a[0].replace('*','\'')
             # pleasantness,activation,imagery
             pleasantness,_,_ = a[-3:]
             my_dict[word] = (i,float(pleasantness))

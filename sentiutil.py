@@ -6,12 +6,15 @@ from collections import defaultdict
 def dict_convert(sentence):
     """convert a sentence to a dictionary of word-count pairs"""
     counts = defaultdict(int)
-    for word in [x.lower() for x in sentence.replace('<br />',' ').split()]:
+    # remove html tags
+    input = sentence.split()
+    for word in [x.lower() for x in input]:
         # to save (some) words at the end of a sentence from being ignored
-        if len(word) > 5:
+        if len(word) > 4:
             # remove interpunction signs
             word = re.sub('[!.,?<>]+', '', word)
-        counts[word]+=1
+        if len(word) > 0:
+            counts[word]+=1
     return counts
 
 def output(name,verdict,value):

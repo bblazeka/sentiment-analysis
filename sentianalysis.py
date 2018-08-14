@@ -174,7 +174,7 @@ class SentimentAnalyzer():
         man_unk = 0
         if log:
             print("\nScoring percentages:")
-            print("{0:<17s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
+            print("{0:<15s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
             plus = 0
             i = 0
@@ -228,36 +228,40 @@ class SentimentAnalyzer():
             draw(self.corpus,self.dicts,'recognized','Words recognized per input',False)
 
     def summary(self,graph=False,log=False):
+        """
+            draws a graph of all verdicts, per every dictionary, divided to positive, neutral,
+            negative and unknown
+        """
+        verdicts = []
+        names = []
+        for dict in self.dicts:
+            names.append(dict.name)
+            pos = 0
+            neu = 0
+            neg = 0
+            unk = 0
+            for x in dict.verdicts:
+                try:
+                    if x == 1:
+                        pos += 1
+                    elif x == 0:
+                        neu += 1
+                    elif x == -1:
+                        neg += 1
+                    else:
+                        unk += 1
+                except:
+                    unk += 1
+            verdicts.append([pos,neu,neg,unk])
+        labels = 'pos','neu','neg','unk'
+        
         if log:
-            pass
+            print("\nVerdicts count per dict (pos,neu,neg,unk)")
+            for i in range(len(names)):
+                print("{0:<15s} {1:<6d} {2:<6d} {3:<6d} {4:<6d}"
+                    .format(names[i],verdicts[i][0],verdicts[i][1],verdicts[i][2],verdicts[i][3]))
 
         if graph:
-            """
-                draws a graph of all verdicts, per every dictionary, divided to positive, neutral,
-                negative and unknown
-            """
-            verdicts = []
-            names = []
-            for dict in self.dicts:
-                names.append(dict.name)
-                pos = 0
-                neu = 0
-                neg = 0
-                unk = 0
-                for x in dict.verdicts:
-                    try:
-                        if x == 1:
-                            pos += 1
-                        elif x == 0:
-                            neu += 1
-                        elif x == -1:
-                            neg += 1
-                        else:
-                            unk += 1
-                    except:
-                        unk += 1
-                verdicts.append([pos,neu,neg,unk])
-            labels = 'pos','neu','neg','unk'
             draw_pies(names,'Dispersion of verdicts between dictionaries',labels,verdicts)
 
     def comparison(self,category,graph=False,log=False):
@@ -316,7 +320,7 @@ class SentimentAnalyzer():
             'negative': [x['negative'] for x in scores]
         })
             
-        faceting(title,df)
+        faceting(title,df,index)
 
     def graph_scores(self,separate=False,comp=True,pos=False,neg=False):
         """

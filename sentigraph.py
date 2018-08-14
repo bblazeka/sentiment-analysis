@@ -46,7 +46,7 @@ def plotting_separated(title,dicts,df,header):
     plt.savefig(default_folder+title+"_separated.png")
     plt.clf()
 
-def faceting(sentence,df):
+def faceting(sentence,df,index):
     # ------- PART 2: Apply to all individuals
     # initialize the figure
     plt.figure(num='Sentence spider analysis',figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi)
@@ -60,7 +60,7 @@ def faceting(sentence,df):
     for row in range(len(df.index)):
         make_spider(df, row=row, title=df['group'][row], color=my_palette(row))
 
-    plt.savefig(default_folder+"spider.png")
+    plt.savefig(default_folder+str(index)+"spider.png")
     plt.clf()
 
 def make_spider(df, row, title, color):
