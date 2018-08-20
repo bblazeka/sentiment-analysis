@@ -39,7 +39,7 @@ class SentimentAnalyzer():
         lines = f.readlines()
         i = 0
         for line in lines:
-            if i > self.limit:
+            if i >= self.limit:
                 break
             self.process_line(line.split(',',1),1,0,pos,neg,neu)
             i+=1
@@ -60,7 +60,7 @@ class SentimentAnalyzer():
             reader = csv.reader(f)
             i = 0
             for row in reader:
-                if i > self.limit:
+                if i >= self.limit:
                     break
                 self.process_line(row,column,happs,pos,neg,neu)
                 i+=1
@@ -81,7 +81,7 @@ class SentimentAnalyzer():
             lines = f.readlines()
         i = 0
         for line in lines:
-            if(i>self.limit):
+            if i>=self.limit:
                 break
             line = line.split(separator)
             self.process_line(line,column,happs,pos,neg,neu)
@@ -100,13 +100,16 @@ class SentimentAnalyzer():
         input = []
         cursor.execute("SELECT * FROM "+table)
         try:
+            # randomly determined multiplication to have enough entries
             input = cursor.fetchmany(self.limit)
         except:
+            print("Fetching all entries...")
             input = cursor.fetchall()
-            print("Fetching limited number FAILED, fetched all: "+str(len(input)))
+        print("Entries are fetched, empty will be omitted")
         for entry in input:
             text = entry[column]
-            if text != "[deleted]" and text != "[removed]" and text != "":    
+            # specific for reddit
+            if text != "[deleted]" and text != "[removed]" and text != "":
                 self.corpus.append(text)
     
     def set_dict(self,default, dictslist=None):
@@ -141,7 +144,7 @@ class SentimentAnalyzer():
         for entry in [x.rstrip() for x in self.corpus]:
             if log:
                 print("\n\"\"\"")
-                print("id "+str(ind), end=": ")
+                print("id "+str(ind)+":")
                 print(entry)
                 print("\"\"\"\n")
             for dict in self.dicts:
@@ -216,9 +219,9 @@ class SentimentAnalyzer():
             print("{0:<15s} {1:8.0f}".format(dict.name,len(dict.my_dict)))
 
     def words_recognized(self,log=False,graph=False):
-        """Information about a number of words recongized per input"""
+        """Information about a number of words recongized"""
         if log:
-            print("\nWords recognized per input:")
+            print("\nWords recognized:")
             for dict in self.dicts:
                 recongized = 0
                 for score in dict.scores:

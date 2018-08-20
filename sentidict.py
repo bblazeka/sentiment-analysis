@@ -82,7 +82,7 @@ class BaseDict():
                     else:
                         neutral += 1
                     totalcount += count
-                    totalscore += count*lex[word][idx]
+                    totalscore += count*happ
                 else:
                     neutral += stopVal
         try:
@@ -134,7 +134,7 @@ class HashtagSent(BaseDict):
     path = "data/hashtagsent/unigrams-pmilexicon.txt"
     origin = DictOrigin.AUTO
     center = 0.0
-    min = -6.9
+    min = -7.5
     max = 7.5
 
     def load(self,path):
@@ -201,7 +201,7 @@ class Vader(BaseDict):
     path = "data/vader/unigrams-lexicon.txt"
     origin = DictOrigin.MANUAL
     min = -3.9
-    max = 3.4
+    max = 3.9
     center = 0.0
 
     def load(self,path):
@@ -234,7 +234,7 @@ class LabMT(BaseDict):
     path = "data/labmt/labmt2.txt"
     origin = DictOrigin.MANUAL
     center = 5.0
-    max = 8.5
+    max = 8.7
     min = 1.3
 
     def load(self,path):
@@ -341,7 +341,7 @@ class SOCAL(BaseDict):
     name = "SOCAL"
     path = "data/socal/all_dictionaries-utf8.txt"
     origin = DictOrigin.MANUAL
-    min = -30.2
+    min = -30.7
     center = 0.0
     max = 30.7
 
