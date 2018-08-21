@@ -87,7 +87,7 @@ class SentimentAnalyzer():
             self.process_line(line,column,happs,pos,neg,neu)
             i+=1
 
-    def db_load(self,db_path,table,column=0):
+    def redditdb_load(self,db_path,table):
         """
             loads the data from sqlite3 database
 
@@ -98,25 +98,26 @@ class SentimentAnalyzer():
         con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []
-        cursor.execute("SELECT * FROM "+table)
-        try:
-            # randomly determined multiplication to have enough entries
-            input = cursor.fetchmany(self.limit)
-        except:
-            print("Fetching all entries...")
-            input = cursor.fetchall()
+        cursor.execute("SELECT controversial,subreddit,text FROM "+table)
+        # input = cursor.fetchmany(self.limit)
+        input = cursor.fetchall()
         print("Entries are fetched, empty will be omitted")
+        cnt = 0
         for entry in input:
-            text = entry[column]
+            text = entry[2]
             # specific for reddit
             if text != "[deleted]" and text != "[removed]" and text != "":
                 self.corpus.append(text)
+                cnt += 1
+                #if cnt >= 100:
+                #    break
+        print("Overall fetched entries: "+str(cnt))
     
     def set_dict(self,default, dictslist=None):
         """
             if the parameter default is set to True, all dictionaries will be loaded from
             the default path: data/{algorithm}/{filename}.txt
-            Otherwise, supply a list of dictionaries
+            Otherwise, supply a list of dictionaries that should be used.
         """
         self.dicts = []
         if default:
@@ -227,6 +228,9 @@ class SentimentAnalyzer():
                 for score in dict.scores:
                     recongized += score['recognized']
                 print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
+                print("Top 10 happiest words:")
+                for x in sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)[:10]:
+                    print(x)
         if graph:
             draw(self.corpus,self.dicts,'recognized','Words recognized per input',False)
 

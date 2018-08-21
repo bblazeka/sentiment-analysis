@@ -4,17 +4,13 @@ from sentianalysis import SentimentAnalyzer
 def main():
 
     if(len(sys.argv) <= 1):
-        limit = 100
+        sentianalyzer = SentimentAnalyzer()
     else:
-        limit = int(sys.argv[1])
-        
-    sentianalyzer = SentimentAnalyzer(limit)
-    #sentianalyzer.txt_load('data/corpus/other/movie_comments.txt',1,0,neg=0)
-    #sentianalyzer.csv_load('data/corpus/test.csv',0)
-    #sentianalyzer.csv_load('data/corpus/twitter/1600000.processed.noemoticon.csv',5,0,4,0)
-    sentianalyzer.file_load('data/corpus/imdb/neg.csv',0,4,0,2)
-    sentianalyzer.file_load('data/corpus/imdb/pos.csv',0,4,0,2)
-    #sentianalyzer.db_load('./data/corpus/reddit.db',"post",8)
+        sentianalyzer = SentimentAnalyzer(sys.argv[1])
+    
+    #sentianalyzer.file_load('data/corpus/imdb/neg.csv',0,4,0,2)
+    #sentianalyzer.file_load('data/corpus/imdb/pos.csv',0,4,0,2)
+    sentianalyzer.redditdb_load('./data/corpus/reddit.db',"post")
     sentianalyzer.set_dict(True)
     sentianalyzer.score_corpus(log=True, filter=0.0)
     sentianalyzer.efficiency(graph=True, log=True)

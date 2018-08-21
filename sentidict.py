@@ -35,6 +35,8 @@ class BaseDict():
     scores = []
     verdicts = []
     my_dict = dict()
+    positive = dict()
+    negative = dict()
 
     def setPath(self,path):
         self.path=path
@@ -77,8 +79,15 @@ class BaseDict():
                     # for now, pos, neu and neg are calculated only quantitative
                     if happ > self.center:
                         positive += 1
+                        if happ / self.max * 1.0 > 0.75:
+                            try:
+                                newvalue = self.positive[word][1]+1
+                                self.positive[word] = (happ,newvalue)
+                            except:
+                                self.positive[word] = (happ,1)
                     elif happ < self.center:
                         negative += 1
+                        # yet to determine the algorithm
                     else:
                         neutral += 1
                     totalcount += count
@@ -128,6 +137,13 @@ class BaseDict():
     def normalize(self,value,max,min):
         return 2.0 * (value - min) / (max - min) * 1.0 - 1
 
+    def __init__(self):
+        self.scores = []
+        self.verdicts = []
+        self.positive = dict()
+        self.negative = dict()
+
+
 class HashtagSent(BaseDict):
     # Citation required!!
     name = "HashtagSent"
@@ -155,12 +171,11 @@ class HashtagSent(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class Sent140Lex(BaseDict):
     # Citation required!!
@@ -189,12 +204,11 @@ class Sent140Lex(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class Vader(BaseDict):
     name = "VADER"
@@ -222,12 +236,11 @@ class Vader(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class LabMT(BaseDict):
     name = "LabMT"
@@ -259,12 +272,11 @@ class LabMT(BaseDict):
         return score
     
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class SentiWordNet(BaseDict):
     name = "SentiWordNet"
@@ -301,12 +313,11 @@ class SentiWordNet(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class SenticNet(BaseDict):
     name = "SenticNet"
@@ -330,12 +341,11 @@ class SenticNet(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class SOCAL(BaseDict):
     name = "SOCAL"
@@ -363,12 +373,11 @@ class SOCAL(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
 
 class WDAL(BaseDict):
     name = "WDAL"
@@ -400,9 +409,8 @@ class WDAL(BaseDict):
         return score
 
     def __init__(self,path=None):
+        BaseDict.__init__(self)
         try:
             self.load(path)
         except TypeError:
             self.load(self.path)
-        self.scores = []
-        self.verdicts = []
