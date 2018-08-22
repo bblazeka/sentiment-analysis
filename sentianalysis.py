@@ -98,19 +98,17 @@ class SentimentAnalyzer():
         con = sqlite3.connect(db_path)
         cursor = con.cursor()
         input = []
-        cursor.execute("SELECT controversial,subreddit,text FROM "+table)
+        cursor.execute("SELECT * FROM "+table)
         # input = cursor.fetchmany(self.limit)
         input = cursor.fetchall()
         print("Entries are fetched, empty will be omitted")
         cnt = 0
         for entry in input:
-            text = entry[2]
+            text = entry[0]
             # specific for reddit
             if text != "[deleted]" and text != "[removed]" and text != "":
                 self.corpus.append(text)
                 cnt += 1
-                #if cnt >= 100:
-                #    break
         print("Overall fetched entries: "+str(cnt))
     
     def set_dict(self,default, dictslist=None):
@@ -228,9 +226,13 @@ class SentimentAnalyzer():
                 for score in dict.scores:
                     recongized += score['recognized']
                 print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
-                print("Top 10 happiest words:")
+                print("Top 10 positive words:")
                 for x in sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)[:10]:
                     print(x)
+                print("Top 10 negative words:")
+                secondary = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
+                for x in sorted(secondary, key=lambda x:(x[1][0]))[:10]:
+                    print(x)                    
         if graph:
             draw(self.corpus,self.dicts,'recognized','Words recognized per input',False)
 

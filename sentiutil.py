@@ -2,6 +2,7 @@ import os
 import re
 from os.path import isfile,abspath,isdir,join
 from collections import defaultdict
+import sqlite3
 
 def dict_convert(sentence):
     """convert a sentence to a dictionary of word-count pairs"""
@@ -40,3 +41,54 @@ def joinFiles(file_one_path,file_two_path):
     for filename in os.listdir(folder):
         print("4", end=",")
         print(open(folder+"/"+filename).read())
+
+supported_subreddits = ["politics","StarWars","sports","technology","philosophy","facepalm"]
+
+def generate_tablenames():
+    tables = []
+    for sub in supported_subreddits:
+        non_contr = sub+"_non_contr"
+        contr = sub+"_contr"
+        tables.append(non_contr)
+        tables.append(contr)
+    return tables
+
+def reddit_separate(db_path,table):
+    """
+        separates the file into files with a list entries depending on controversiality
+        and subreddit and then filters deleted content
+    """
+    con = sqlite3.connect(db_path)
+    cursor = con.cursor()
+    input = []
+    cursor.execute("SELECT controversial,subreddit,text FROM "+table)
+    input = cursor.fetchall()
+
+    # creating tables for output
+    tables = []
+    sqlite_file = "reddit_separated.db"
+    conn = sqlite3.connect(sqlite_file)
+    c = conn.cursor()
+    tables = generate_tablenames()
+    for table in tables:
+        c.execute('CREATE TABLE IF NOT EXISTS {tn} ({nf} {ft})'\
+        .format(tn=table, nf="text", ft="TEXT"))
+    
+    for entry in input:
+        text = entry[2]
+        if text != "[deleted]" and text != "[removed]" and text != "":
+            try:
+                controversy = int(entry[0])
+            except:
+                controversy = 0
+            try:
+                index = supported_subreddits.index(entry[1])
+                table = tables[2*index+controversy]
+                c.execute("INSERT INTO {tn} VALUES (?)".format(tn=table), (text,))
+            except:
+                print("Unknown subreddit: "+entry[1])
+
+    conn.commit()
+    conn.close()
+
+    return tables

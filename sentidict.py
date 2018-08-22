@@ -66,6 +66,8 @@ class BaseDict():
         negative = 0.0
         neutral = 0
         recognized = 0
+        pos_border = self.center + 0.1 * (self.max - self.center)
+        neg_border = self.center - 0.1 * (self.max - self.center)
         for word,count in word_dict.items():
             # ignore stop words
             stops = set(stopwords.words("english"))
@@ -79,7 +81,7 @@ class BaseDict():
                     # for now, pos, neu and neg are calculated only quantitative
                     if happ > self.center:
                         positive += 1
-                        if happ / self.max * 1.0 > 0.75:
+                        if happ > pos_border:
                             try:
                                 newvalue = self.positive[word][1]+1
                                 self.positive[word] = (happ,newvalue)
@@ -87,7 +89,12 @@ class BaseDict():
                                 self.positive[word] = (happ,1)
                     elif happ < self.center:
                         negative += 1
-                        # yet to determine the algorithm
+                        if happ < neg_border:
+                            try:
+                                newvalue = self.negative[word][1]+1
+                                self.negative[word] = (happ,newvalue)
+                            except:
+                                self.negative[word] = (happ,1)
                     else:
                         neutral += 1
                     totalcount += count
