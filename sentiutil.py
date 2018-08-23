@@ -22,15 +22,15 @@ def output(name,verdict,value):
     """Function that formats the output depending on the evaluation"""
     try:
         if(verdict == 1):
-            print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"positive",value))
+            return("{0:<15s} {1:<10s} {2:8.4f}".format(name,"positive",value))
         elif(verdict == -1):
-            print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"negative",value))
+            return("{0:<15s} {1:<10s} {2:8.4f}".format(name,"negative",value))
         elif(verdict == 0):
-            print("{0:<15s} {1:<10s} {2:8.4f}".format(name,"neutral",value))
+            return("{0:<15s} {1:<10s} {2:8.4f}".format(name,"neutral",value))
         else:
-            print("{0:<15s} {1:<10s}".format(name,"unknown"))
+            return("{0:<15s} {1:<10s}".format(name,"unknown"))
     except:
-        print("{0:<15s} {1:<10s}".format(name,"unknown"))
+        return("{0:<15s} {1:<10s}".format(name,"unknown"))
 
 def joinFiles(file_one_path,file_two_path):
     folder = os.getcwd()+file_one_path

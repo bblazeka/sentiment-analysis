@@ -2,10 +2,12 @@
     Interface for using the sentiment analysis
 """
 import sqlite3
+import os, errno
 from os.path import isfile,abspath,isdir,join
 from scipy.stats.stats import pearsonr
 from sentiutil import output
-from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies, corr_matrix
+from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies, corr_matrix, \
+        bar_values
 from sentidict import HashtagSent, Sent140Lex, LabMT, Vader, SentiWordNet, BaseDict, \
         SenticNet, SOCAL, WDAL, DictOrigin
 import pandas as pd
@@ -19,6 +21,7 @@ class SentimentAnalyzer():
     correct = []
     dicts = []
     limit = 5000
+    output_folder = "."
 
     def process_line(self,row,input,happs,pos,neg,neu):
         self.corpus.append(row[input])
@@ -101,7 +104,7 @@ class SentimentAnalyzer():
         cursor.execute("SELECT * FROM "+table)
         # input = cursor.fetchmany(self.limit)
         input = cursor.fetchall()
-        print("Entries are fetched, empty will be omitted")
+        self.log_file.write("Entries are fetched, empty will be omitted\n")
         cnt = 0
         for entry in input:
             text = entry[0]
@@ -109,7 +112,7 @@ class SentimentAnalyzer():
             if text != "[deleted]" and text != "[removed]" and text != "":
                 self.corpus.append(text)
                 cnt += 1
-        print("Overall fetched entries: "+str(cnt))
+        self.log_file.write("Overall fetched entries: "+str(cnt)+"\n")
     
     def set_dict(self,default, dictslist=None):
         """
@@ -142,18 +145,18 @@ class SentimentAnalyzer():
         ind = 0
         for entry in [x.rstrip() for x in self.corpus]:
             if log:
-                print("\n\"\"\"")
-                print("id "+str(ind)+":")
-                print(entry)
-                print("\"\"\"\n")
+                self.log_file.write("\n\"\"\"\n")
+                self.log_file.write("id "+str(ind)+":\n")
+                self.log_file.write(entry+"\n")
+                self.log_file.write("\"\"\"\n")
             for dict in self.dicts:
                 stopVal = filter * (dict.max - dict.center)
                 score = dict.score(entry,stopVal)
                 scores.append(score)
                 verdict = dict.judge(score,filter)
                 if log:
-                    print(score)
-                    output(dict.name,verdict,score['compound'])
+                    self.log_file.write(str(score)+"\n")
+                    self.log_file.write(output(dict.name,verdict,score['compound'])+"\n")
             ind+=1
         return scores
 
@@ -165,7 +168,7 @@ class SentimentAnalyzer():
             and evaluated sentences
         """
         if len(self.correct) <= 0:
-            print("\nNo set of correct scores given so efficiency can't be calculated.")
+            self.log_file.write("\nNo set of correct scores given so efficiency can't be calculated.\n")
             return
         correct = []
         solved = []
@@ -175,8 +178,8 @@ class SentimentAnalyzer():
         man_plus = 0
         man_unk = 0
         if log:
-            print("\nScoring percentages:")
-            print("{0:<15s} {1:8s} {2:8s}".format("Dictionary","Correct","Unk"))
+            self.log_file.write("\nScoring percentages:\n")
+            self.log_file.write("{0:<15s} {1:8s} {2:8s}\n".format("Dictionary","Correct","Unk"))
         for dict in self.dicts:
             plus = 0
             i = 0
@@ -199,42 +202,51 @@ class SentimentAnalyzer():
             solved.append(1-perc_unk)
             names.append(dict.name)
             if log:
-                print("{0:<15s} {1:8.4f} {2:8.4f}".format(dict.name,perc_plus, perc_unk))
+                self.log_file.write("{0:<15s} {1:8.4f} {2:8.4f}\n".format(dict.name,perc_plus, perc_unk))
 
         size = 4 * i
         if log:
-            print("\nPercentages by origin:")
-            print("{0:<15s} {1:8.4f} {2:8.4f}".format("Auto",auto_plus * 1.0 / size, auto_unk * 1.0 / size))
-            print("{0:<15s} {1:8.4f} {2:8.4f}".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
+            self.log_file.write("\nPercentages by origin:\n")
+            self.log_file.write("{0:<15s} {1:8.4f} {2:8.4f}\n".format("Auto",auto_plus * 1.0 / size, auto_unk * 1.0 / size))
+            self.log_file.write("{0:<15s} {1:8.4f} {2:8.4f}\n".format("Manual",man_plus * 1.0 / size, man_unk * 1.0 / size))
 
         if graph:
             title = "Dictionary effectiveness coparison"
-            bar_compare(names,title,correct,solved)
+            bar_compare(self.output_folder,names,title,correct,solved)
 
-    def dict_sizes(self):
+    def dict_sizes(self,log=False,graph=False):
         """prints the number of entries in the loaded dictionaries"""
-        print("\nDictionary sizes:")
-        for dict in self.dicts:
-            print("{0:<15s} {1:8.0f}".format(dict.name,len(dict.my_dict)))
+        if log:
+            self.log_file.write("\nDictionary sizes:\n")
+            for dict in self.dicts:
+                self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,len(dict.my_dict)))
+        if graph:
+            bar_values(self.output_folder,[x.name for x in self.dicts],
+                    [len(x.my_dict) for x in self.dicts],"sizes","dict sizes")
 
     def words_recognized(self,log=False,graph=False):
         """Information about a number of words recongized"""
+        total_recognized = []
+        labels = []
         if log:
-            print("\nWords recognized:")
+            self.log_file.write("\nWords recognized:\n")
             for dict in self.dicts:
                 recongized = 0
                 for score in dict.scores:
                     recongized += score['recognized']
-                print("{0:<15s} {1:8.0f}".format(dict.name,recongized))
-                print("Top 10 positive words:")
+                labels.append(dict.name)
+                total_recognized.append(recongized)
+                self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,recongized))
+                self.log_file.write("Top 10 positive words:\n")
                 for x in sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)[:10]:
-                    print(x)
-                print("Top 10 negative words:")
+                    self.log_file.write(str(x)+"\n")
+                self.log_file.write("Top 10 negative words:\n")
                 secondary = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
                 for x in sorted(secondary, key=lambda x:(x[1][0]))[:10]:
-                    print(x)                    
+                    self.log_file.write(str(x)+"\n")                    
         if graph:
-            draw(self.corpus,self.dicts,'recognized','Words recognized per input',False)
+            bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
+            draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)
 
     def summary(self,graph=False,log=False):
         """
@@ -265,13 +277,13 @@ class SentimentAnalyzer():
         labels = 'pos','neu','neg','unk'
         
         if log:
-            print("\nVerdicts count per dict (pos,neu,neg,unk)")
+            self.log_file.write("\nVerdicts count per dict (pos,neu,neg,unk)\n")
             for i in range(len(names)):
-                print("{0:<15s} {1:<6d} {2:<6d} {3:<6d} {4:<6d}"
+                self.log_file.write("{0:<15s} {1:<6d} {2:<6d} {3:<6d} {4:<6d}\n"
                     .format(names[i],verdicts[i][0],verdicts[i][1],verdicts[i][2],verdicts[i][3]))
 
         if graph:
-            draw_pies(names,'Dispersion of verdicts between dictionaries',labels,verdicts)
+            draw_pies(self.output_folder,names,'Dispersion of verdicts between dictionaries',labels,verdicts)
 
     def comparison(self,category,graph=False,log=False):
         """draws a correlation matrix between dictionary ratings"""
@@ -300,15 +312,15 @@ class SentimentAnalyzer():
                     corrs[i].append(pearsonr(values,other)[0])
 
         if log:
-            print("\nCorrelations between dictionaries:")
+            self.log_file.write("\nCorrelations between dictionaries:\n")
             for i in range(len(corrs)):
                 name = self.dicts[i].name
                 for j in range(len(corrs[i])):
                     other = self.dicts[j].name
-                    print("{0:<15s} {1:<15s} {2:8.4f}".format(name,other,float(corrs[i][j])))
+                    self.log_file.write("{0:<15s} {1:<15s} {2:8.4f}\n".format(name,other,float(corrs[i][j])))
 
         if graph:
-            corr_matrix(corrs,labels,category)
+            corr_matrix(self.output_folder,corrs,labels,category)
 
     def details(self,index):
         """details about one entry. Loging to file or drawing radar charts
@@ -329,7 +341,7 @@ class SentimentAnalyzer():
             'negative': [x['negative'] for x in scores]
         })
             
-        faceting(title,df,index)
+        faceting(self.output_folder,title,df,index)
 
     def graph_scores(self,separate=False,comp=True,pos=False,neg=False):
         """
@@ -342,19 +354,22 @@ class SentimentAnalyzer():
         """
         header = "Scores for each input"
         if(comp):
-            draw(self.corpus,self.dicts,'compound',header,separate)
+            draw(self.output_folder,self.corpus,self.dicts,'compound',header,separate)
         
         if(pos):
-            draw(self.corpus,self.dicts,'positive',header,separate)
+            draw(self.output_folder,self.corpus,self.dicts,'positive',header,separate)
 
         if(neg):
-            draw(self.corpus,self.dicts,'negative',header,separate)
+            draw(self.output_folder,self.corpus,self.dicts,'negative',header,separate)
 
-    def __init__(self,limit=5000):
+    def __init__(self,limit=5000,folder="."):
         self.dicts = []
         self.limit = limit
+        self.output_folder = folder
+        os.makedirs(folder, exist_ok=True)
+        self.log_file = open(self.output_folder+"log.out","w+")
 
-def draw(corpus,dicts,param,header,separate=False):
+def draw(folder,corpus,dicts,param,header,separate=False):
     """draws values from the dictionaries"""
     indexes = [x for x in range(len(corpus))]
     scores = []
@@ -365,9 +380,9 @@ def draw(corpus,dicts,param,header,separate=False):
         df = pd.DataFrame()
         for i in range(len(cols)):
             df.insert(i,cols[i],scores[i])
-        plotting_separated(param,cols,df,header)
+        plotting_separated(folder,param,cols,df,header)
     else:
-        plotting(param,indexes,cols,scores,header)
+        plotting(folder,param,indexes,cols,scores,header)
 
 def norm_score(score,pos,neg,neu):
     """normalizes the scoring system; converts pos,neu,neg to [1,0,-1] set"""
