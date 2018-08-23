@@ -143,7 +143,11 @@ class SentimentAnalyzer():
         """
         scores = []
         ind = 0
+        length = 0
+        count = 0
         for entry in [x.rstrip() for x in self.corpus]:
+            length += len(entry)
+            count += 1
             if log:
                 self.log_file.write("\n\"\"\"\n")
                 self.log_file.write("id "+str(ind)+":\n")
@@ -158,6 +162,7 @@ class SentimentAnalyzer():
                     self.log_file.write(str(score)+"\n")
                     self.log_file.write(output(dict.name,verdict,score['compound'])+"\n")
             ind+=1
+        self.log_file.write("\nAverage length of an entry: "+str(length/count)+"\n")
         return scores
 
     def efficiency(self,log=True,graph=True):
