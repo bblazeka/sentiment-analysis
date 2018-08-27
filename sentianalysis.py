@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import csv
 
 
-class SentimentAnalyzer():
+class SentimentAnalyser():
 
     corpus = []
     correct = []
@@ -102,17 +102,15 @@ class SentimentAnalyzer():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        # input = cursor.fetchmany(self.limit)
-        input = cursor.fetchall()
+        input = cursor.fetchmany(80)
+        #input = cursor.fetchall()
         self.log_file.write("Entries are fetched, empty will be omitted\n")
-        cnt = 0
         for entry in input:
             text = entry[0]
             # specific for reddit
             if text != "[deleted]" and text != "[removed]" and text != "":
                 self.corpus.append(text)
-                cnt += 1
-        self.log_file.write("Overall fetched entries: "+str(cnt)+"\n")
+        self.log_file.write("Overall entries count: "+str(len(self.corpus))+"\n")
     
     def set_dict(self,default, dictslist=None):
         """
@@ -136,6 +134,7 @@ class SentimentAnalyzer():
     def score_corpus(self,filter=0.0,log=False):
         """
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
+            returns scores and average length
 
             filter : coeff for filtering of the words that are not relevant, higher it is, less 
             words are taken into account when scoring the corpus. By default set to 0.0.
@@ -145,6 +144,7 @@ class SentimentAnalyzer():
         ind = 0
         length = 0
         count = 0
+        print("to be scored: "+str(len(self.corpus)))
         for entry in [x.rstrip() for x in self.corpus]:
             length += len(entry)
             count += 1
@@ -162,8 +162,9 @@ class SentimentAnalyzer():
                     self.log_file.write(str(score)+"\n")
                     self.log_file.write(output(dict.name,verdict,score['compound'])+"\n")
             ind+=1
-        self.log_file.write("\nAverage length of an entry: "+str(length/count)+"\n")
-        return scores
+        avg = length/count
+        self.log_file.write("\nAverage length of an entry: "+str(avg)+"\n")
+        return (scores,avg)
 
     def efficiency(self,log=True,graph=True):
         """
@@ -229,8 +230,11 @@ class SentimentAnalyzer():
             bar_values(self.output_folder,[x.name for x in self.dicts],
                     [len(x.my_dict) for x in self.dicts],"sizes","dict sizes")
 
-    def words_recognized(self,log=False,graph=False):
-        """Information about a number of words recongized"""
+    def words_recognized(self,log=True,graph=False):
+        """
+            Information about a number of words recongized.
+            Returns the list of counts of recognized words
+        """
         total_recognized = []
         labels = []
         if log:
@@ -252,6 +256,8 @@ class SentimentAnalyzer():
         if graph:
             bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
             draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)
+
+        return total_recognized
 
     def summary(self,graph=False,log=False):
         """
@@ -369,6 +375,7 @@ class SentimentAnalyzer():
 
     def __init__(self,limit=5000,folder="."):
         self.dicts = []
+        self.corpus = []
         self.limit = limit
         self.output_folder = folder
         os.makedirs(folder, exist_ok=True)

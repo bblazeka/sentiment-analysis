@@ -18,6 +18,8 @@ y = 800
 
 def plotting(folder,title,indexes,cols,scores,header):
     plt.figure(num=title, figsize=(x/my_dpi, y/my_dpi), dpi=my_dpi, facecolor='w', edgecolor='k')
+    plt.xlabel('Entry')
+    plt.ylabel('Values')
     plt.suptitle(header)
     plt.subplots_adjust(top=0.8)
     for i in range(len(cols)):
@@ -26,6 +28,7 @@ def plotting(folder,title,indexes,cols,scores,header):
            ncol=2, mode="expand", borderaxespad=0.)
     plt.savefig(folder+title+"_joined.png")
     plt.clf()
+    plt.close()
 
 def plotting_separated(folder,title,dicts,df,header):
     """plots on separate graph in the same window"""
@@ -44,6 +47,7 @@ def plotting_separated(folder,title,dicts,df,header):
 
     plt.savefig(folder+title+"_separated.png")
     plt.clf()
+    plt.close()
 
 def faceting(folder,sentence,df,index):
     # ------- PART 2: Apply to all individuals
@@ -61,6 +65,7 @@ def faceting(folder,sentence,df,index):
 
     plt.savefig(folder+str(index)+"spider.png")
     plt.clf()
+    plt.close()
 
 def make_spider(df, row, title, color):
     
@@ -125,6 +130,7 @@ def bar_compare(folder,x_axis,title,list1,list2):
 
     plt.savefig(folder+"barplot.png")
     plt.clf()
+    plt.close()
 
 def draw_pies(folder,names,title,labels,verdicts):
     """
@@ -141,6 +147,7 @@ def draw_pies(folder,names,title,labels,verdicts):
 
     plt.savefig(folder+'piecharts.png')
     plt.clf()
+    plt.close()
 
 def corr_matrix(folder,data_array,labels,category):
     """plot the pearson correlation matrix with given labels"""
@@ -156,14 +163,19 @@ def corr_matrix(folder,data_array,labels,category):
     plt.title('Correlation matrix: '+category)
     # Add colorbar, make sure to specify tick locations to match desired ticklabels
     fig.colorbar(cax, ticks=[.1,.2,.3,.4,.5,.6,.7,.8,.9,1])
+    fig.autofmt_xdate()
     plt.savefig(folder+"corr_"+category+".png")
     plt.clf()
+    plt.close()
 
 def bar_values(folder,labels,values,key,title):
     """draws a bar chart with given labels and values"""
+    fig = plt.figure()
     plt.bar(labels, values)
     plt.xlabel('Categories')
     plt.ylabel('Values')
+    fig.autofmt_xdate()
     plt.title("Bar chart "+title)
     plt.savefig(folder+"bar_"+key+".png")
     plt.clf()
+    plt.close()
