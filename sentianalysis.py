@@ -102,7 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchmany(80)
+        input = cursor.fetchmany(200)
         #input = cursor.fetchall()
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
@@ -230,12 +230,14 @@ class SentimentAnalyser():
             bar_values(self.output_folder,[x.name for x in self.dicts],
                     [len(x.my_dict) for x in self.dicts],"sizes","dict sizes")
 
-    def words_recognized(self,log=True,graph=False):
+    def words_recognized(self,log=False,graph=False):
         """
             Information about a number of words recongized.
             Returns the list of counts of recognized words
         """
         total_recognized = []
+        positive_words = []
+        negative_words = []
         labels = []
         if log:
             self.log_file.write("\nWords recognized:\n")
@@ -247,17 +249,19 @@ class SentimentAnalyser():
                 total_recognized.append(recongized)
                 self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,recongized))
                 self.log_file.write("Top 10 positive words:\n")
-                for x in sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)[:10]:
+                positive_words = sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)
+                for x in positive_words[:10]:
                     self.log_file.write(str(x)+"\n")
                 self.log_file.write("Top 10 negative words:\n")
-                secondary = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
-                for x in sorted(secondary, key=lambda x:(x[1][0]))[:10]:
+                partial_sort = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
+                negative_words = sorted(partial_sort, key=lambda x:(x[1][0]))
+                for x in negative_words[:10]:
                     self.log_file.write(str(x)+"\n")                    
         if graph:
             bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
             draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)
 
-        return total_recognized
+        return total_recognized,positive_words,negative_words
 
     def summary(self,graph=False,log=False):
         """
@@ -294,14 +298,15 @@ class SentimentAnalyser():
                     .format(names[i],verdicts[i][0],verdicts[i][1],verdicts[i][2],verdicts[i][3]))
 
         if graph:
-            draw_pies(self.output_folder,names,'Dispersion of verdicts between dictionaries',labels,verdicts)
+            draw_pies(self.output_folder,names,'Dispersion of verdicts between dictionaries',
+                    labels,verdicts,2,4)
+
+        return verdicts
 
     def comparison(self,category,graph=False,log=False):
         """draws a correlation matrix between dictionary ratings"""
         corrs = []
-        labels = []
-        for dict in self.dicts:
-            labels.append(dict.name)
+        labels = self.get_dictnames()
         if category == "verdicts":
             for i in range(len(self.dicts)):
                 corrs.append([])
@@ -372,6 +377,12 @@ class SentimentAnalyser():
 
         if(neg):
             draw(self.output_folder,self.corpus,self.dicts,'negative',header,separate)
+
+    def get_dictnames(self):
+        labels = []
+        for dict in self.dicts:
+            labels.append(dict.name)
+        return labels
 
     def __init__(self,limit=5000,folder="."):
         self.dicts = []

@@ -132,7 +132,7 @@ def bar_compare(folder,x_axis,title,list1,list2):
     plt.clf()
     plt.close()
 
-def draw_pies(folder,names,title,labels,verdicts):
+def draw_pies(folder,names,title,labels,verdicts,dimx,dimy):
     """
         plots in order of labels pie charts for every dictionary in the same window.
     """
@@ -141,7 +141,7 @@ def draw_pies(folder,names,title,labels,verdicts):
     plt.subplots_adjust(left=left,right=right)
 
     for i in range(len(verdicts)):
-        plt.subplot(2,4,i+1)
+        plt.subplot(dimx,dimy,i+1)
         plt.pie(verdicts[i],labels=labels, startangle=90)
         plt.title(names[i])
 
