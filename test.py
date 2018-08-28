@@ -1,4 +1,4 @@
-import sys
+import sys, json
 from multiprocessing import Process, Manager
 from sentianalysis import SentimentAnalyser
 from subanalysis import SubAnalyser
@@ -11,25 +11,36 @@ def analysis(table,return_dict):
 
     sentianalyser.set_dict(True)
     _, avglen = sentianalyser.score_corpus(log=True, filter=0.0)
-    sentianalyser.efficiency(graph=True, log=True)
-    recognized,positive,negative = sentianalyser.words_recognized(graph=True, log=True)
+    #sentianalyser.efficiency(graph=True, log=True)
+
+    manager = Manager()
+    output = manager.dict()
+
+    proc = Process(target=sentianalyser.words_recognized, args=(output,True,True))
+    proc.start()
 
     verdicts = sentianalyser.summary(graph=True,log=True)
-    sentianalyser.comparison('verdicts',graph=True,log=False)
-    sentianalyser.comparison('compound',graph=True,log=False)
-    sentianalyser.graph_scores(separate=True)
-    sentianalyser.graph_scores()
-    for i in range(100,1000,200):
-       sentianalyser.details(i)
-    
+    proc.join()
+
     analyser = {}
+    analyser["table"] = table
     analyser["avg_length"] = avglen
     analyser["verdicts"] = verdicts
-    analyser["recognized_words"] = recognized
-    analyser["positive"] = positive
-    analyser["negative"] = negative
+    analyser["recognized_words"] = output["recognized"]
+    analyser["positive"] = output["positive"]
+    analyser["negative"] = output["negative"]
 
     return_dict[table] = analyser
+
+    Process(target=sentianalyser.comparison, args=('verdicts',True,False)).start()
+    Process(target=sentianalyser.comparison, args=('compound',True,False)).start()
+    Process(target=sentianalyser.graph_scores, args=(True,)).start()
+    Process(target=sentianalyser.graph_scores, args=()).start()
+    #for i in range(100,1000,200):
+    #    sentianalyser.details(i)
+    
+    with open("./output/"+table+'data.json', 'w') as outfile:
+        json.dump(analyser, outfile)
 
 def main():
     
@@ -38,10 +49,11 @@ def main():
     else:
         sentianalyser = SentimentAnalyser(sys.argv[1])
 
+    sentianalyser.set_dict(True)
     analyser = SubAnalyser("./output/")
     analyser.set_interesting(
-        ["liberty","freedom","win","smart","champion"],
-        ["war","kill","terrorist","racist","slavery"]
+        ["liberty","freedom","win","smart","champion","justice"],
+        ["war","kill","terrorist","racist","slavery","penalty"]
     )
     
     jobs = []
@@ -58,16 +70,19 @@ def main():
     analyser.dicts = sentianalyser.get_dictnames()
     # processing outputs
     for table in analyser.tables:
-        output = outputs[table]
+        #reading from file
+        with open("./output/"+table+'data.json') as f:
+            output = json.load(f)
+        #output = outputs[table]
         analyser.avg_length.append(output["avg_length"])
         analyser.verdicts.append(output["verdicts"])
         analyser.recognized_words.append(output["recognized_words"])
         analyser.process_words(output["positive"],output["negative"])
     
-    analyser.average_length(log=False,graph=True)
-    analyser.recognized(log=False,graph=True)
-    analyser.interesting(log=False,graph=True)
-    analyser.verdict_distribution(log=False,graph=True)
+    Process(target=analyser.average_length, args=(False,True)).start()
+    Process(target=analyser.recognized, args=(False,True)).start()
+    Process(target=analyser.interesting, args=(False,True)).start()
+    analyser.verdict_distribution(False,True)
 
 if __name__ == '__main__':
     main()

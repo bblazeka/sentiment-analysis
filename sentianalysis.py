@@ -102,7 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchmany(5000)
+        input = cursor.fetchmany(1000)
         #input = cursor.fetchall()
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
@@ -230,7 +230,7 @@ class SentimentAnalyser():
             bar_values(self.output_folder,[x.name for x in self.dicts],
                     [len(x.my_dict) for x in self.dicts],"sizes","dict sizes")
 
-    def words_recognized(self,log=False,graph=False):
+    def words_recognized(self,output,log=False,graph=False):
         """
             Information about a number of words recongized.
             Returns the list of counts of recognized words
@@ -264,7 +264,9 @@ class SentimentAnalyser():
             bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
             draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)
 
-        return total_recognized,positive_words,negative_words
+        output["recognized"]=total_recognized
+        output["positive"]=positive_words
+        output["negative"]=negative_words
 
     def summary(self,graph=False,log=False):
         """

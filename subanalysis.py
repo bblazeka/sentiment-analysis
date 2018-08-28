@@ -3,6 +3,7 @@
 """
 import os
 import numpy as np
+from scipy.stats.stats import pearsonr
 from sentiutil import reddit_separate, generate_tablenames
 from sentigraph import plotting, plotting_separated, faceting, bar_compare, draw_pies, corr_matrix, \
         bar_values
@@ -104,11 +105,14 @@ class SubAnalyser():
         for word in neg:
             self.intr_neg[word] = []
     
+    def set_dictnames(self,names):
+        self.dicts = names
+    
     def verdict_distribution(self,log=False,graph=False):
         """
-            verdict distribution for a dictionary over different subreddits
+            verdict distribution for a dictionary over different subreddits and correlation between them
         """
-        transposed_verdicts  = np.transpose(self.verdicts,(1,0,2))
+        transposed_verdicts = np.transpose(self.verdicts,(1,0,2))
         if log:
             print("\nComparison of subreddits for each dictionary:")
             [print(self.dicts[i]+" "+self.tables[j]+" "+str(transposed_verdicts[i][j])) 
@@ -121,7 +125,17 @@ class SubAnalyser():
             os.makedirs(folder, exist_ok=True)
             for i in range(len(self.dicts)):
                 draw_pies(folder+self.dicts[i],self.tables,
-                        'Dispersion of verdicts for a dict (subreddits)',labels,transposed_verdicts[i],3,4)
+                        'Dispersion of verdicts for a dict (subreddits)',labels,transposed_verdicts[i],3,4)   
+                #correlation between subreddits
+                corrs = []
+                for j in range(len(self.tables)):
+                    corrs.append([])
+                    for k in range(len(self.tables)):
+                        values = transposed_verdicts[i][j]
+                        other = transposed_verdicts[i][k]
+                        corrs[j].append(pearsonr(values,other)[0])
+                corr_matrix(folder,corrs,self.tables,self.dicts[i])
+
 
     def __init__(self,folder):
         self.folder = folder

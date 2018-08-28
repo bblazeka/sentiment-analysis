@@ -42,7 +42,7 @@ def joinFiles(file_one_path,file_two_path):
         print("4", end=",")
         print(open(folder+"/"+filename).read())
 
-supported_subreddits = ["politics","StarWars","sports","technology","philosophy","facepalm"]
+supported_subreddits = ["philosophy","facepalm","sports","technology","politics","StarWars"]
 
 def generate_tablenames():
     tables = []
