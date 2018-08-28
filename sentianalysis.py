@@ -102,7 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchmany(200)
+        input = cursor.fetchmany(5000)
         #input = cursor.fetchall()
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
@@ -249,14 +249,17 @@ class SentimentAnalyser():
                 total_recognized.append(recongized)
                 self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,recongized))
                 self.log_file.write("Top 10 positive words:\n")
-                positive_words = sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)
-                for x in positive_words[:10]:
+                positive_sorted = sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)
+                for x in positive_sorted[:10]:
                     self.log_file.write(str(x)+"\n")
                 self.log_file.write("Top 10 negative words:\n")
                 partial_sort = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
-                negative_words = sorted(partial_sort, key=lambda x:(x[1][0]))
-                for x in negative_words[:10]:
-                    self.log_file.write(str(x)+"\n")                    
+                negative_sorted = sorted(partial_sort, key=lambda x:(x[1][0]))
+                for x in negative_sorted[:10]:
+                    self.log_file.write(str(x)+"\n")
+                if dict.name == "VADER":
+                    positive_words = positive_sorted
+                    negative_words = negative_sorted    
         if graph:
             bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
             draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)

@@ -30,5 +30,3 @@ To run the sentiment analysis, you need to make sure you have all the required d
 https://github.com/cjhutto/vaderSentiment
 
 https://github.com/andyreagan/labMT-simple
-
-NOTE: Add a citation for Sentiment140 and HashtagSent!!
