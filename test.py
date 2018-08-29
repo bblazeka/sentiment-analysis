@@ -22,6 +22,11 @@ def analysis(table,return_dict):
     verdicts = sentianalyser.summary(graph=True,log=True)
     proc.join()
 
+    Process(target=sentianalyser.comparison, args=('verdicts',True,False)).start()
+    Process(target=sentianalyser.comparison, args=('compound',True,False)).start()
+    Process(target=sentianalyser.graph_scores, args=(True,)).start()
+    Process(target=sentianalyser.graph_scores, args=()).start()
+
     analyser = {}
     analyser["table"] = table
     analyser["avg_length"] = avglen
@@ -31,13 +36,8 @@ def analysis(table,return_dict):
     analyser["negative"] = output["negative"]
 
     return_dict[table] = analyser
-
-    Process(target=sentianalyser.comparison, args=('verdicts',True,False)).start()
-    Process(target=sentianalyser.comparison, args=('compound',True,False)).start()
-    Process(target=sentianalyser.graph_scores, args=(True,)).start()
-    Process(target=sentianalyser.graph_scores, args=()).start()
-    #for i in range(100,1000,200):
-    #    sentianalyser.details(i)
+    for i in range(0,len(sentianalyser.corpus),500):
+        sentianalyser.details(i)
     
     with open("./output/"+table+'data.json', 'w') as outfile:
         json.dump(analyser, outfile)
@@ -52,8 +52,10 @@ def main():
     sentianalyser.set_dict(True)
     analyser = SubAnalyser("./output/")
     analyser.set_interesting(
-        ["liberty","freedom","win","smart","champion","justice"],
-        ["war","kill","terrorist","racist","slavery","penalty"]
+        ["liberty","freedom","win","smart","champion","justice","intelligence","hero","funny",
+        "fan","energy","peaceful","sophisticated","friendly","entertaining","defense","solution"],
+        ["war","kill","terrorist","racist","slavery","penalty","fascist","propaganda","bankrupt",
+        "cancer","crisis","violence","conspiracy","illegal","hell","prison","bomb"]
     )
     
     jobs = []

@@ -102,8 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchmany(1000)
-        #input = cursor.fetchall()
+        input = cursor.fetchall()
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
             text = entry[0]
@@ -352,6 +351,9 @@ class SentimentAnalyser():
         """
         scores = []
         title = self.corpus[index]
+        while len(title) > 130:
+            index+=1
+            title = self.corpus[index]
         for dict in self.dicts:
             scores.append(dict.scores[index])
 
@@ -361,8 +363,10 @@ class SentimentAnalyser():
             'neutral': [x['neutral'] for x in scores],
             'negative': [x['negative'] for x in scores]
         })
-            
-        faceting(self.output_folder,title,df,index)
+        
+        folder = self.output_folder+"entries/"
+        os.makedirs(folder, exist_ok=True)
+        faceting(folder,title,df,index)
 
     def graph_scores(self,separate=False,comp=True,pos=False,neg=False):
         """
