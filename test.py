@@ -10,13 +10,12 @@ def analysis(table,return_dict):
     sentianalyser.redditdb_load('./data/corpus/reddit_separated.db',table)
 
     sentianalyser.set_dict(True)
-    _, avglen = sentianalyser.score_corpus(log=True, filter=0.0)
-    #sentianalyser.efficiency(graph=True, log=True)
+    avglen = sentianalyser.score_corpus(filter=0.0)
 
     manager = Manager()
     output = manager.dict()
 
-    proc = Process(target=sentianalyser.words_recognized, args=(output,True,True))
+    proc = Process(target=sentianalyser.words_recognized, args=(output,True))
     proc.start()
 
     verdicts = sentianalyser.summary(graph=True,log=True)
@@ -36,9 +35,12 @@ def analysis(table,return_dict):
     analyser["negative"] = output["negative"]
 
     return_dict[table] = analyser
-    for i in range(0,len(sentianalyser.corpus),500):
-        sentianalyser.details(i)
-    
+    try:
+        for i in range(0,len(sentianalyser.corpus),int(len(sentianalyser.corpus)/12)):
+            sentianalyser.details(i)
+    except:
+        print("could not finish comment graphing")
+
     with open("./output/"+table+'data.json', 'w') as outfile:
         json.dump(analyser, outfile)
 

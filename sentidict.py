@@ -57,7 +57,6 @@ class BaseDict():
             raise('could not open the needed file')
 
     def calculate_score(self,input,lex,stopVal):
-        idx = 1
         totalcount = 0
         totalscore = 0.0
         word_dict = dict_convert(input)
@@ -68,14 +67,14 @@ class BaseDict():
         recognized = 0
         pos_border = self.center + 0.1 * (self.max - self.center)
         neg_border = self.center - 0.1 * (self.max - self.center)
+        stops = self.stopwords
         for word,count in word_dict.items():
             # ignore stop words
-            stops = set(stopwords.words("english"))
             if word in stops:
                 continue
             # process other words
             if word in lex:
-                happ = lex[word][idx]
+                happ = lex[word][1]
                 if abs(happ-self.center) >= stopVal:
                     recognized += 1
                     # for now, pos, neu and neg are calculated only quantitative
@@ -125,14 +124,15 @@ class BaseDict():
 
     def judge(self,score,stopVal=0.0):
         verdict = 0
+        comp = score['compound']
         try:
-            if abs(score['compound']-self.norm_threshold)>stopVal:
-                if score['compound'] > self.norm_threshold:
+            if abs(comp-self.norm_threshold)>stopVal:
+                if comp > self.norm_threshold:
                     verdict = 1
                 else:
                     verdict = -1
             else:
-                if score['compound'] == 0 and score['neutral'] == 0 and score['positive'] == 0:
+                if comp == 0 and score['neutral'] == 0 and score['positive'] == 0:
                     verdict = -2
                 else:
                     verdict = 0
@@ -149,7 +149,7 @@ class BaseDict():
         self.verdicts = []
         self.positive = dict()
         self.negative = dict()
-
+        self.stopwords = set(stopwords.words("english"))
 
 class HashtagSent(BaseDict):
     # Citation required!!
@@ -172,7 +172,7 @@ class HashtagSent(BaseDict):
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry,stopVal=0.0):
+    def score(self,entry,stopVal):
         score = self.calculate_score(entry,self.my_dict,stopVal)
         self.scores.append(score)
         return score

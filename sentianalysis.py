@@ -102,7 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchall()
+        input = cursor.fetchmany(2000000)
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
             text = entry[0]
@@ -130,7 +130,7 @@ class SentimentAnalyser():
         else:
             self.dicts = dictslist
 
-    def score_corpus(self,filter=0.0,log=False):
+    def score_corpus(self,filter=0.0):
         """
             calculates the scores of the corpus (iterates through every sentence and every dictionary)
             returns scores and average length
@@ -139,31 +139,25 @@ class SentimentAnalyser():
             words are taken into account when scoring the corpus. By default set to 0.0.
             logging : log analyzed sentences to stdout, by default set to True
         """
-        scores = []
         ind = 0
         length = 0
         count = 0
         print("to be scored: "+str(len(self.corpus)))
         for entry in [x.rstrip() for x in self.corpus]:
+            text = ""
             length += len(entry)
             count += 1
-            if log:
-                self.log_file.write("\n\"\"\"\n")
-                self.log_file.write("id "+str(ind)+":\n")
-                self.log_file.write(entry+"\n")
-                self.log_file.write("\"\"\"\n")
+            text+="\n\"\"\"\n"+"id "+str(ind)+":\n"+entry+"\n"+"\"\"\"\n"
             for dict in self.dicts:
-                stopVal = filter * (dict.max - dict.center)
-                score = dict.score(entry,stopVal)
-                scores.append(score)
-                verdict = dict.judge(score,filter)
-                if log:
-                    self.log_file.write(str(score)+"\n")
-                    self.log_file.write(output(dict.name,verdict,score['compound'])+"\n")
+                #stopVal = filter * (dict.max - dict.center)
+                score = dict.score(entry,0.0)
+                verdict = dict.judge(score,0.0)
+                text+=str(score)+"\n"+output(dict.name,verdict,score['compound'])+"\n"
             ind+=1
+            self.log_file.write(text)
         avg = length/count
         self.log_file.write("\nAverage length of an entry: "+str(avg)+"\n")
-        return (scores,avg)
+        return avg
 
     def efficiency(self,log=True,graph=True):
         """
@@ -229,7 +223,7 @@ class SentimentAnalyser():
             bar_values(self.output_folder,[x.name for x in self.dicts],
                     [len(x.my_dict) for x in self.dicts],"sizes","dict sizes")
 
-    def words_recognized(self,output,log=False,graph=False):
+    def words_recognized(self,output,graph=False):
         """
             Information about a number of words recongized.
             Returns the list of counts of recognized words
@@ -238,27 +232,42 @@ class SentimentAnalyser():
         positive_words = []
         negative_words = []
         labels = []
-        if log:
-            self.log_file.write("\nWords recognized:\n")
-            for dict in self.dicts:
-                recongized = 0
-                for score in dict.scores:
-                    recongized += score['recognized']
-                labels.append(dict.name)
-                total_recognized.append(recongized)
-                self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,recongized))
-                self.log_file.write("Top 10 positive words:\n")
-                positive_sorted = sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)
-                for x in positive_sorted[:10]:
-                    self.log_file.write(str(x)+"\n")
-                self.log_file.write("Top 10 negative words:\n")
-                partial_sort = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
-                negative_sorted = sorted(partial_sort, key=lambda x:(x[1][0]))
-                for x in negative_sorted[:10]:
-                    self.log_file.write(str(x)+"\n")
-                if dict.name == "VADER":
-                    positive_words = positive_sorted
-                    negative_words = negative_sorted    
+        path = self.output_folder+"top_words/"
+        os.makedirs(path,exist_ok=True)
+        self.log_file.write("\nWords recognized:\n")
+        for dict in self.dicts:
+            pos10 = []
+            neg10 = []
+            recongized = 0
+            for score in dict.scores:
+                recongized += score['recognized']
+            labels.append(dict.name)
+            total_recognized.append(recongized)
+            self.log_file.write("{0:<15s} {1:8.0f}\n".format(dict.name,recongized))
+            self.log_file.write("Top 10 positive words:\n")
+            positive_sorted = sorted(dict.positive.items(), key=lambda x:(x[1][0],x[1][1]), reverse=True)
+            for x in positive_sorted[:10]:
+                self.log_file.write(str(x)+"\n")
+                pos10.append((x[0],x[1][1]))
+            self.log_file.write("Top 10 negative words:\n")
+            partial_sort = sorted(dict.negative.items(), key=lambda x:x[1][1], reverse=True)
+            negative_sorted = sorted(partial_sort, key=lambda x:(x[1][0]))
+            for x in negative_sorted[:10]:
+                self.log_file.write(str(x)+"\n")
+                neg10.append((x[0],x[1][1]))
+
+            if graph:
+                bar_values(path,
+                        [x[0] for x in pos10],[x[1] for x in pos10],
+                        "positive"+dict.name,"positive words")
+                bar_values(path,
+                        [x[0] for x in neg10],[x[1] for x in neg10],
+                        "negative"+dict.name,"negative words")
+
+            if dict.name == "VADER":
+                positive_words = positive_sorted
+                negative_words = negative_sorted    
+
         if graph:
             bar_values(self.output_folder,labels,total_recognized,'recognized','recognized words')
             draw(self.output_folder,self.corpus,self.dicts,'recognized','Words recognized per input',False)

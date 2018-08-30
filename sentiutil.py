@@ -62,7 +62,7 @@ def reddit_separate(db_path,table):
     cursor = con.cursor()
     input = []
     cursor.execute("SELECT controversial,subreddit,text FROM "+table)
-    input = cursor.fetchmany(155000)
+    input = cursor.fetchall()
 
     # creating tables for output
     tables = []
