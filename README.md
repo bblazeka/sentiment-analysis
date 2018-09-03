@@ -1,8 +1,14 @@
 # sentiment-analysis
 
-In this repository, we examine which algorithms would be best applied for sentiment analysis of reddit posts.
+In this repository, we examine which dictionaries or algorithms would be best applied for sentiment analysis of reddit posts. Also, the results of comparsion are examined for conclusions about subreddits.
 
-### How the dictionaries were created
+Code produces the log files of all entries that are scored and scores for each dictionary and also various graphs that represent presence of important words, recognized words, distribution of verdicts (on positive, negative, neutral and unknown) in various visualization methods and various correlations. Which output is generated is determined in the `test.py` script.
+
+For each table that is analysed, a folder is created. Code was tested on reddit content, divided by subreddit (technology, StarWars, sports, politics, facepalm, philosophy) and by being controversial or non-controversial.
+
+Also, temp data is generated (in json format) so that first process (entry sentiment analysis) and second process (graphing for each subreddit) do not have to be neccesarily run at the same time, especially since not all tables finish their processing at the same time (because of parallelism).
+
+### Dictionaries by origin
 
 LabMT (MANUAL) - language assessment by Mechanical Turk, 50 ratings
 
@@ -22,11 +28,13 @@ WDAL (MANUAL) - Whissel’s Dictionary of Affective Language: words rated in ter
 
 ### Running the repository
 
+In order to run it, you need to aquire resources (dictionary files with sentiments for words), put them in "data" folder and name subfolders by the name of the dictionary. At least, that is the setup currently expected.
+
 To run the sentiment analysis, you need to make sure you have all the required datasets and you need to write:
 `python3 test.py`
 
 ### Resources:
 
-https://github.com/cjhutto/vaderSentiment
-
 https://github.com/andyreagan/labMT-simple
+
+https://github.com/cjhutto/vaderSentiment

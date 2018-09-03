@@ -23,7 +23,11 @@ def analysis(table,return_dict):
 
     Process(target=sentianalyser.comparison, args=('verdicts',True,False)).start()
     Process(target=sentianalyser.comparison, args=('compound',True,False)).start()
+    Process(target=sentianalyser.comparison, args=('positive',True,False)).start()
+    Process(target=sentianalyser.comparison, args=('negative',True,False)).start()
     Process(target=sentianalyser.graph_scores, args=(True,)).start()
+    Process(target=sentianalyser.graph_scores, args=(False,False,True)).start()
+    Process(target=sentianalyser.graph_scores, args=(False,False,False,True)).start()
     Process(target=sentianalyser.graph_scores, args=()).start()
 
     analyser = {}
