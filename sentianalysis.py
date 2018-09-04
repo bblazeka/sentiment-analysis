@@ -102,7 +102,7 @@ class SentimentAnalyser():
         cursor = con.cursor()
         input = []
         cursor.execute("SELECT * FROM "+table)
-        input = cursor.fetchmany(2000000)
+        input = cursor.fetchmany(2500000)
         self.log_file.write("Entries are fetched, empty will be omitted\n")
         for entry in input:
             text = entry[0]

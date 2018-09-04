@@ -42,9 +42,9 @@ class SubAnalyser():
             folder = "./output/top_words/"
             os.makedirs(folder, exist_ok=True)
             for key, value in self.intr_pos.items():
-                bar_values(folder,self.tables,value,key,key+" word occurance over subreddits")
+                bar_values(folder,self.tables,value,key,key+" - word occurrence over subreddits")
             for key, value in self.intr_neg.items():
-                bar_values(folder,self.tables,value,key,key+" word occurance over subreddits")
+                bar_values(folder,self.tables,value,key,key+" - word occurrence over subreddits")
 
     def process_words(self,positive,negative):
         """
@@ -125,7 +125,7 @@ class SubAnalyser():
             os.makedirs(folder, exist_ok=True)
             for i in range(len(self.dicts)):
                 draw_pies(folder+self.dicts[i],self.tables,
-                        'Dispersion of verdicts for a dict (subreddits)',labels,transposed_verdicts[i],3,4)   
+                        'Dispersion of verdicts (subreddits) '+self.dicts[i],labels,transposed_verdicts[i],3,4)   
                 #correlation between subreddits
                 corrs = []
                 for j in range(len(self.tables)):
