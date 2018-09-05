@@ -276,6 +276,27 @@ class SentimentAnalyser():
         output["positive"]=positive_words
         output["negative"]=negative_words
 
+    def recognized_percentage(self, log=False, graph=False):
+        labels = []
+        percents = []
+        for dict in self.dicts:
+            labels.append(dict.name)
+            recognized = 0
+            total = 0
+            for score in dict.scores:
+                recognized+=score["recognized"]
+                total+=score["total"]
+            percents.append(recognized/total)
+
+        if log:
+            self.log_file.write("Percentage recognized:\n")
+            for i in range(len(percents)):
+                print("I am here")
+                self.log_file.write(self.dicts[i].name+" "+str(percents[i])+"\n")
+
+        if graph:
+            bar_values(self.output_folder,labels,percents,'recognized_perc','recognized percents')
+
     def summary(self,graph=False,log=False):
         """
             draws a graph of all verdicts, per every dictionary, divided to positive, neutral,

@@ -56,6 +56,11 @@ class BaseDict():
         except:
             raise('could not open the needed file')
 
+    def score(self,entry,stopVal=0.0):
+        score = self.calculate_score(entry,self.my_dict,stopVal)
+        self.scores.append(score)
+        return score
+
     def calculate_score(self,input,lex,stopVal):
         totalcount = 0
         totalscore = 0.0
@@ -64,6 +69,7 @@ class BaseDict():
         positive = 0.0
         negative = 0.0
         neutral = 0
+        total_words = 0
         recognized = 0
         pos_border = self.center + 0.1 * (self.max - self.center)
         neg_border = self.center - 0.1 * (self.max - self.center)
@@ -72,6 +78,7 @@ class BaseDict():
             # ignore stop words
             if word in stops:
                 continue
+            total_words += 1
             # process other words
             if word in lex:
                 happ = lex[word][1]
@@ -120,7 +127,8 @@ class BaseDict():
              "neutral": round(neu, 3),
              "positive": round(pos, 3),
              "compound": round(compound, 4),
-             "recognized": recognized}
+             "recognized": recognized,
+             "total": total_words}
 
     def judge(self,score,stopVal=0.0):
         verdict = 0
@@ -172,11 +180,6 @@ class HashtagSent(BaseDict):
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry,stopVal):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
-
     def __init__(self,path=None):
         BaseDict.__init__(self)
         try:
@@ -205,11 +208,6 @@ class Sent140Lex(BaseDict):
         f.close()
         self.my_dict = unigrams
 
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
-
     def __init__(self,path=None):
         BaseDict.__init__(self)
         try:
@@ -236,11 +234,6 @@ class Vader(BaseDict):
                 i+=1
         f.close()
         self.my_dict = unigrams
-
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
 
     def __init__(self,path=None):
         BaseDict.__init__(self)
@@ -272,11 +265,6 @@ class LabMT(BaseDict):
             i+=1
         f.close()
         self.my_dict = unigrams
-
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
     
     def __init__(self,path=None):
         BaseDict.__init__(self)
@@ -314,11 +302,6 @@ class SentiWordNet(BaseDict):
         f.close()
         self.my_dict = my_dict
 
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
-
     def __init__(self,path=None):
         BaseDict.__init__(self)
         try:
@@ -341,11 +324,6 @@ class SenticNet(BaseDict):
         for line in scraped:
             my_dict[line] = scraped[line]
         self.my_dict = my_dict
-
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
 
     def __init__(self,path=None):
         BaseDict.__init__(self)
@@ -373,11 +351,6 @@ class SOCAL(BaseDict):
                 i+=1
         f.close()
         self.my_dict = my_dict
-
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
 
     def __init__(self,path=None):
         BaseDict.__init__(self)
@@ -409,11 +382,6 @@ class WDAL(BaseDict):
             my_dict[word] = (i,float(pleasantness))
             i+=1
         self.my_dict = my_dict
-
-    def score(self,entry,stopVal=0.0):
-        score = self.calculate_score(entry,self.my_dict,stopVal)
-        self.scores.append(score)
-        return score
 
     def __init__(self,path=None):
         BaseDict.__init__(self)

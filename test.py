@@ -21,6 +21,7 @@ def analysis(table,return_dict):
     verdicts = sentianalyser.summary(graph=True,log=True)
     proc.join()
 
+    sentianalyser.recognized_percentage(False,True)
     Process(target=sentianalyser.comparison, args=('verdicts',True,False)).start()
     Process(target=sentianalyser.comparison, args=('compound',True,False)).start()
     Process(target=sentianalyser.comparison, args=('positive',True,False)).start()
