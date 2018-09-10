@@ -60,9 +60,9 @@ def main():
     analyser = SubAnalyser("./output/")
     analyser.set_interesting(
         ["liberty","freedom","win","smart","champion","justice","intelligence","hero","funny",
-        "fan","energy","peaceful","sophisticated","friendly","entertaining","defense","solution"],
-        ["war","kill","terrorist","racist","slavery","penalty","fascist","propaganda","bankrupt",
-        "cancer","crisis","violence","conspiracy","illegal","hell","prison","bomb"]
+        "fan","energy","peaceful","sophisticated","winner","entertaining","defense","solution"],
+        ["war","kill","terrorist","racist","slavery","penalty","fascist","ignorance","punishment",
+        "cancer","crisis","violence","conspiracy","illegal","loser","loss","murder","criminal"]
     )
     
     jobs = []

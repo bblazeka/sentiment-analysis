@@ -108,6 +108,7 @@ def bar_compare(folder,x_axis,title,list1,list2):
  
     # create plot
     _, _ = plt.subplots()
+    fig = plt.figure()
     index = np.arange(n_groups)
     bar_width = 0.35
     opacity = 0.8
@@ -121,7 +122,8 @@ def bar_compare(folder,x_axis,title,list1,list2):
                      alpha=opacity,
                      color='b',
                      label='Solved')
- 
+    fig.autofmt_xdate()
+
     plt.xlabel('Dictionary')
     plt.ylabel('Count')
     plt.title(title)

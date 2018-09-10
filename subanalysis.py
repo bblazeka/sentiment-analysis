@@ -31,6 +31,11 @@ class SubAnalyser():
         """
             analysis of interesting words distribution
         """
+        # calculate percentage of representation in recognized words
+        for key, value in self.intr_pos.items():
+            self.intr_pos[key] = [value[i]/self.recognized_words[i][4] for i in range(12)]
+        for key, value in self.intr_neg.items():
+            self.intr_neg[key] = [value[i]/self.recognized_words[i][4] for i in range(12)]
         if log:
             print("\nInteresting words in each subreddit:")
             for key, value in self.intr_pos.items():
